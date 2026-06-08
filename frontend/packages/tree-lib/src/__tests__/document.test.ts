@@ -75,13 +75,13 @@ describe('isValidDocument', () => {
   })
 
   test('rejects missing persons array', () => {
-    const doc = emptyDocument() as Record<string, unknown>
+    const doc = emptyDocument() as unknown as Record<string, unknown>
     delete doc.persons
     expect(isValidDocument(doc)).toBe(false)
   })
 
   test('rejects missing families array', () => {
-    const doc = emptyDocument() as Record<string, unknown>
+    const doc = emptyDocument() as unknown as Record<string, unknown>
     delete doc.families
     expect(isValidDocument(doc)).toBe(false)
   })
