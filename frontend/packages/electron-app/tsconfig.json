@@ -11,7 +11,8 @@
     "noEmit": true,
     "paths": {
       "@family-tree/tree-lib": ["../tree-lib/src/index.ts"]
-    }
+    },
+    "types": ["electron", "node"]
   },
   "include": ["src"]
 }

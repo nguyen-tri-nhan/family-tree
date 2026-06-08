@@ -45,18 +45,31 @@ export default function App() {
   }, [compareMode.active])
 
   async function handleNew() {
-    await storage.newFile()
-    setDoc(await storage.load())
-    setSelected(null)
+    try {
+      await storage.newFile()
+      setDoc(await storage.load())
+      setSelected(null)
+    } catch (e) {
+      if (e instanceof Error && e.message !== 'Hủy tạo file mới') alert(e.message)
+    }
   }
 
   async function handleOpen() {
-    const d = await storage.openFile()
-    setDoc(d)
-    setSelected(null)
-    setHighlight(undefined)
-    setCompareMode({ active: false })
-    setKinshipPair(null)
+    try {
+      const d = await storage.openFile()
+      setDoc(d)
+      setSelected(null)
+      setHighlight(undefined)
+      setCompareMode({ active: false })
+      setKinshipPair(null)
+    } catch (e) {
+      if (e instanceof Error && e.message !== 'Không có file được chọn') alert(e.message)
+    }
+  }
+
+  function handleTitleBarDoubleClick(e: React.MouseEvent<HTMLElement>) {
+    if ((e.target as HTMLElement).closest('button, input, select')) return
+    window.api.toggleMaximize()
   }
 
   async function handleSave() {
@@ -106,8 +119,8 @@ export default function App() {
   }
 
   return (
-    <div style={{ fontFamily: 'system-ui, sans-serif' }}>
-      <header style={headerStyle}>
+    <div style={{ fontFamily: 'system-ui, sans-serif', height: '100%', overflow: 'hidden' }}>
+      <header style={headerStyle} onDoubleClick={handleTitleBarDoubleClick}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <h1 style={{ fontSize: 18, fontWeight: 900, color: '#1e1b4b', margin: 0 }}>Cây Gia Phả</h1>
           <span style={{ fontSize: 11, color: '#78716c' }}>{doc.clan.name}</span>
@@ -229,7 +242,7 @@ const emptyState: React.CSSProperties = {
 const headerStyle = {
   position: 'fixed', top: 0, left: 0, right: 0, zIndex: 10,
   background: '#fef08a', borderBottom: '1px solid #fde047',
-  padding: '8px 20px',
+  padding: '8px 20px 8px 90px',
   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
   gap: 12,
   WebkitAppRegion: 'drag',

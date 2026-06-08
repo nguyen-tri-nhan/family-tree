@@ -1,4 +1,5 @@
-import { app, BrowserWindow, ipcMain, dialog } from 'electron'
+import * as electronMain from 'electron/main'
+const { app, BrowserWindow, ipcMain, dialog } = electronMain
 import { join } from 'node:path'
 import { readFileSync, writeFileSync, renameSync, existsSync, mkdirSync } from 'node:fs'
 
@@ -30,7 +31,7 @@ function createWindow() {
     height: 800,
     titleBarStyle: 'hiddenInset',
     webPreferences: {
-      preload: join(__dirname, '../preload/index.js'),
+      preload: join(__dirname, '../preload/index.cjs'),
       contextIsolation: true,
       nodeIntegration: false,
     },
@@ -38,6 +39,7 @@ function createWindow() {
 
   if (process.env.ELECTRON_RENDERER_URL) {
     win.loadURL(process.env.ELECTRON_RENDERER_URL)
+    win.webContents.openDevTools()
   } else {
     win.loadFile(join(__dirname, '../renderer/index.html'))
   }
@@ -84,6 +86,13 @@ ipcMain.handle('prefs:addRecent', (
     ...prefs.recentFiles.filter(f => f.path !== entry.path),
   ].slice(0, 10)
   savePrefs(prefs)
+})
+
+ipcMain.handle('window:toggle-maximize', (event) => {
+  const win = BrowserWindow.fromWebContents(event.sender)
+  if (!win) return
+  if (win.isMaximized()) win.unmaximize()
+  else win.maximize()
 })
 
 // ── App lifecycle ─────────────────────────────────────────────

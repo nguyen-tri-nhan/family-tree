@@ -7,6 +7,7 @@ interface ElectronAPI {
   newFile: () => Promise<string | null>
   getRecent: () => Promise<Array<{ path: string; name: string; openedAt: string }>>
   addRecent: (entry: { path: string; name: string; openedAt: string }) => Promise<void>
+  toggleMaximize: () => Promise<void>
 }
 
 declare global {
