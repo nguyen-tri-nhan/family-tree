@@ -1,7 +1,8 @@
 # Family Tree
 
 Vietnamese family tree manager — runs in the browser and as a desktop app (Electron).  
-Data is stored as `.ftree` files (base64 JSON), fully **local-first**, no account required.
+Data is stored as `.ftree` files (base64 JSON), fully **local-first**, no account required.  
+Available on **Web** (Vercel) and **Desktop** (Windows / macOS).
 
 [![CI](https://github.com/nguyen-tri-nhan/family-tree/actions/workflows/ci.yml/badge.svg)](https://github.com/nguyen-tri-nhan/family-tree/actions/workflows/ci.yml)
 
