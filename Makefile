@@ -4,6 +4,7 @@ PKG      := $(FRONTEND)/packages
 .PHONY: install build build-lib build-web build-electron \
         dev dev-web dev-electron \
         typecheck typecheck-web typecheck-electron \
+        test test-watch \
         clean
 
 # ── Setup ──────────────────────────────────────────────────────────
@@ -33,6 +34,14 @@ dev-web:
 
 dev-electron:
 	cd $(PKG)/electron-app && npm run dev
+
+# ── Test ───────────────────────────────────────────────────────────
+
+test:
+	cd $(PKG)/tree-lib && npm test
+
+test-watch:
+	cd $(PKG)/tree-lib && npm run test:watch
 
 # ── Typecheck ──────────────────────────────────────────────────────
 

@@ -1,0 +1,47 @@
+name: Release
+
+on:
+  push:
+    branches: [release]
+
+permissions:
+  contents: write
+
+jobs:
+  build-electron:
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            artifact: frontend/packages/electron-app/release/*.exe
+          - os: macos-latest
+            artifact: frontend/packages/electron-app/release/*.dmg
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+
+      - name: Build & package
+        run: |
+          npx electron-vite build
+          npx electron-builder --publish never
+        working-directory: frontend/packages/electron-app
+
+      - name: Get version
+        id: pkg
+        shell: bash
+        run: |
+          echo "version=$(node -p "require('./frontend/packages/electron-app/package.json').version")" >> $GITHUB_OUTPUT
+
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.pkg.outputs.version }}
+          name: v${{ steps.pkg.outputs.version }}
+          files: ${{ matrix.artifact }}
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+

@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  typecheck:
+    name: Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+
+      - run: npm run typecheck
+        working-directory: frontend/packages/tree-lib
+
+      - run: npm run typecheck
+        working-directory: frontend/packages/web-app
+
+      - run: npm run typecheck
+        working-directory: frontend/packages/electron-app
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+
+      - run: npm test
+        working-directory: frontend/packages/tree-lib
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: [typecheck, test]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+
+      - run: npm run build
+        working-directory: frontend/packages/tree-lib
+
+      - run: npm run build
+        working-directory: frontend/packages/web-app
+
+      - run: npm run build
+        working-directory: frontend/packages/electron-app

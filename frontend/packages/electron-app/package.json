@@ -1,6 +1,6 @@
 {
   "name": "@family-tree/electron-app",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "private": true,
   "type": "module",
   "main": "out/main/index.js",
@@ -26,5 +26,33 @@
     "electron-vite": "^3.0.0",
     "typescript": "^5.8.3",
     "vite": "^6.3.5"
+  },
+  "build": {
+    "appId": "com.family-tree.app",
+    "productName": "Cây Gia Phả",
+    "asar": true,
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "out/**/*",
+      "!out/**/*.map"
+    ],
+    "mac": {
+      "target": [
+        { "target": "dmg", "arch": ["x64", "arm64"] }
+      ],
+      "category": "public.app-category.productivity"
+    },
+    "win": {
+      "target": [
+        { "target": "nsis", "arch": ["x64"] }
+      ]
+    },
+    "linux": {
+      "target": [
+        { "target": "AppImage", "arch": ["x64"] }
+      ]
+    }
   }
 }
