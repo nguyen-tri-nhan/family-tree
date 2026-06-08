@@ -1,0 +1,13 @@
+{
+  "name": "family-tree-frontend",
+  "private": true,
+  "version": "0.0.0",
+  "workspaces": [
+    "packages/*"
+  ],
+  "devDependencies": {
+    "@types/d3": "^7.4.3",
+    "lerna": "^8",
+    "typescript": "^5.8.3"
+  }
+}

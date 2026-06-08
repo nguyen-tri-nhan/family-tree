@@ -1,0 +1,791 @@
+{
+  "version": "1.0",
+  "createdAt": "2026-01-01T00:00:00.000Z",
+  "updatedAt": "2026-06-08T00:00:00.000Z",
+  "clan": {
+    "id": "clan-nguyen-van-dong-ngac",
+    "name": "Họ Nguyễn Văn — Làng Đông Ngạc",
+    "surname": "Nguyễn",
+    "origin": "Làng Đông Ngạc, Từ Liêm, Hà Nội",
+    "foundingYear": 1820,
+    "motto": "Kính tổ tiên, yêu con cháu",
+    "description": "Dòng họ Nguyễn Văn gốc làng Đông Ngạc, truyền 7 đời từ cụ tổ Nguyễn Văn Phúc.",
+    "generationPoems": [
+      "Phúc — Thịnh — Minh — Đức — Hùng — Anh — Bảo"
+    ],
+    "region": "north"
+  },
+  "branches": [
+    {
+      "id": "branch-truong",
+      "name": "Chi Trưởng",
+      "shortName": "Chi I",
+      "type": "main",
+      "order": 1,
+      "ancestorPersonId": "p2",
+      "clanId": "clan-nguyen-van-dong-ngac"
+    },
+    {
+      "id": "branch-thu",
+      "name": "Chi Thứ",
+      "shortName": "Chi II",
+      "type": "secondary",
+      "order": 2,
+      "ancestorPersonId": "p3",
+      "clanId": "clan-nguyen-van-dong-ngac"
+    }
+  ],
+  "persons": [
+    {
+      "id": "p1",
+      "displayName": "Nguyễn Văn Phúc",
+      "gender": "male",
+      "isAlive": false,
+      "birthDate": {
+        "year": 1820,
+        "displayCalendar": "solar"
+      },
+      "deathDate": {
+        "year": 1895,
+        "displayCalendar": "solar"
+      },
+      "birthPlace": "Làng Đông Ngạc, Từ Liêm",
+      "names": {
+        "taboo": "Phúc",
+        "sinograph": "阮文福"
+      },
+      "bio": "Cụ tổ khai khẩn dòng họ tại làng Đông Ngạc. Xây nhà thờ họ năm 1860.",
+      "titles": [
+        {
+          "type": "other",
+          "label": "Cụ Tổ",
+          "awardedYear": 1860
+        }
+      ],
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "p1w",
+      "displayName": "Trần Thị Đức",
+      "gender": "female",
+      "isAlive": false,
+      "birthDate": {
+        "year": 1825,
+        "displayCalendar": "solar"
+      },
+      "deathDate": {
+        "year": 1900,
+        "displayCalendar": "solar"
+      },
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "p2",
+      "displayName": "Nguyễn Văn Thịnh",
+      "gender": "male",
+      "isAlive": false,
+      "birthDate": {
+        "year": 1848,
+        "displayCalendar": "solar"
+      },
+      "deathDate": {
+        "year": 1920,
+        "displayCalendar": "solar"
+      },
+      "bio": "Con cả, nối nghiệp buôn bán. Được phong Lý trưởng năm 1890.",
+      "titles": [
+        {
+          "type": "other",
+          "label": "Lý trưởng",
+          "awardedYear": 1890
+        }
+      ],
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "p2w",
+      "displayName": "Lê Thị Hiền",
+      "gender": "female",
+      "isAlive": false,
+      "birthDate": {
+        "year": 1852,
+        "displayCalendar": "solar"
+      },
+      "deathDate": {
+        "year": 1930,
+        "displayCalendar": "solar"
+      },
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "p3",
+      "displayName": "Nguyễn Văn Cường",
+      "gender": "male",
+      "isAlive": false,
+      "birthDate": {
+        "year": 1852,
+        "displayCalendar": "solar"
+      },
+      "deathDate": {
+        "year": 1935,
+        "displayCalendar": "solar"
+      },
+      "bio": "Con thứ, làm thầy đồ dạy học trong làng.",
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "p3w",
+      "displayName": "Phạm Thị Nhân",
+      "gender": "female",
+      "isAlive": false,
+      "birthDate": {
+        "year": 1855,
+        "displayCalendar": "solar"
+      },
+      "deathDate": {
+        "year": 1940,
+        "displayCalendar": "solar"
+      },
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "p4",
+      "displayName": "Nguyễn Văn Minh",
+      "gender": "male",
+      "isAlive": false,
+      "birthDate": {
+        "year": 1875,
+        "displayCalendar": "solar"
+      },
+      "deathDate": {
+        "year": 1950,
+        "displayCalendar": "solar"
+      },
+      "bio": "Tham gia phong trào cách mạng, cán bộ kháng chiến.",
+      "occupations": [
+        {
+          "title": "Cán bộ cách mạng",
+          "sector": "government",
+          "startYear": 1945
+        }
+      ],
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "p4w",
+      "displayName": "Hoàng Thị Lan",
+      "gender": "female",
+      "isAlive": false,
+      "birthDate": {
+        "year": 1878,
+        "displayCalendar": "solar"
+      },
+      "deathDate": {
+        "year": 1955,
+        "displayCalendar": "solar"
+      },
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "p5",
+      "displayName": "Nguyễn Thị Bình",
+      "gender": "female",
+      "isAlive": false,
+      "birthDate": {
+        "year": 1878,
+        "displayCalendar": "solar"
+      },
+      "deathDate": {
+        "year": 1960,
+        "displayCalendar": "solar"
+      },
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "p6",
+      "displayName": "Nguyễn Văn Trọng",
+      "gender": "male",
+      "isAlive": false,
+      "birthDate": {
+        "year": 1880,
+        "displayCalendar": "solar"
+      },
+      "deathDate": {
+        "year": 1965,
+        "displayCalendar": "solar"
+      },
+      "bio": "Nhà giáo ưu tú, dạy học tại Hà Nội 40 năm.",
+      "titles": [
+        {
+          "type": "nghe_nhan",
+          "label": "Nhà giáo ưu tú",
+          "awardedYear": 1958
+        }
+      ],
+      "occupations": [
+        {
+          "title": "Giáo viên",
+          "sector": "education",
+          "startYear": 1905,
+          "endYear": 1960
+        }
+      ],
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "p6w",
+      "displayName": "Vũ Thị Thu",
+      "gender": "female",
+      "isAlive": false,
+      "birthDate": {
+        "year": 1883,
+        "displayCalendar": "solar"
+      },
+      "deathDate": {
+        "year": 1968,
+        "displayCalendar": "solar"
+      },
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "p7",
+      "displayName": "Nguyễn Minh Tuấn",
+      "gender": "male",
+      "isAlive": false,
+      "birthDate": {
+        "year": 1905,
+        "displayCalendar": "solar"
+      },
+      "deathDate": {
+        "year": 1954,
+        "displayCalendar": "solar"
+      },
+      "bio": "Liệt sĩ hy sinh tại chiến dịch Điện Biên Phủ 1954.",
+      "titles": [
+        {
+          "type": "anh_hung",
+          "label": "Liệt sĩ",
+          "awardedYear": 1954
+        }
+      ],
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "p8",
+      "displayName": "Nguyễn Thị Hoa",
+      "gender": "female",
+      "isAlive": false,
+      "birthDate": {
+        "year": 1908,
+        "displayCalendar": "solar"
+      },
+      "deathDate": {
+        "year": 1990,
+        "displayCalendar": "solar"
+      },
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "p9",
+      "displayName": "Nguyễn Minh Đức",
+      "gender": "male",
+      "isAlive": false,
+      "birthDate": {
+        "year": 1912,
+        "displayCalendar": "solar"
+      },
+      "deathDate": {
+        "year": 1985,
+        "displayCalendar": "solar"
+      },
+      "birthPlace": "Hà Nội",
+      "bio": "Bác sĩ nội khoa, công tác 35 năm tại Bệnh viện Bạch Mai.",
+      "titles": [
+        {
+          "type": "bac_si",
+          "label": "Bác sĩ",
+          "awardedYear": 1940
+        }
+      ],
+      "occupations": [
+        {
+          "title": "Bác sĩ nội khoa",
+          "organization": "Bệnh viện Bạch Mai",
+          "sector": "government",
+          "startYear": 1940,
+          "endYear": 1975
+        }
+      ],
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "p9w",
+      "displayName": "Đặng Thị Yến",
+      "gender": "female",
+      "isAlive": false,
+      "birthDate": {
+        "year": 1915,
+        "displayCalendar": "solar"
+      },
+      "deathDate": {
+        "year": 1992,
+        "displayCalendar": "solar"
+      },
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "p10",
+      "displayName": "Nguyễn Trọng Nam",
+      "gender": "male",
+      "isAlive": false,
+      "birthDate": {
+        "year": 1910,
+        "displayCalendar": "solar"
+      },
+      "deathDate": {
+        "year": 1980,
+        "displayCalendar": "solar"
+      },
+      "bio": "Kỹ sư xây dựng, tham gia xây cầu Hàm Rồng.",
+      "occupations": [
+        {
+          "title": "Kỹ sư xây dựng",
+          "sector": "government",
+          "startYear": 1935
+        }
+      ],
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "p10w",
+      "displayName": "Bùi Thị Ngọc",
+      "gender": "female",
+      "isAlive": false,
+      "birthDate": {
+        "year": 1913,
+        "displayCalendar": "solar"
+      },
+      "deathDate": {
+        "year": 1988,
+        "displayCalendar": "solar"
+      },
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "p11",
+      "displayName": "Nguyễn Thị Phương",
+      "gender": "female",
+      "isAlive": false,
+      "birthDate": {
+        "year": 1914,
+        "displayCalendar": "solar"
+      },
+      "deathDate": {
+        "year": 1995,
+        "displayCalendar": "solar"
+      },
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "p12",
+      "displayName": "Nguyễn Đức Hùng",
+      "gender": "male",
+      "isAlive": true,
+      "birthDate": {
+        "year": 1945,
+        "displayCalendar": "solar"
+      },
+      "birthPlace": "Hà Nội",
+      "titles": [
+        {
+          "type": "pho_giao_su",
+          "label": "PGS.TS",
+          "awardedYear": 1980
+        }
+      ],
+      "occupations": [
+        {
+          "title": "Phó Giáo sư",
+          "organization": "ĐH Bách Khoa Hà Nội",
+          "sector": "education",
+          "startYear": 1975
+        }
+      ],
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "p12w",
+      "displayName": "Trịnh Thị Mai",
+      "gender": "female",
+      "isAlive": true,
+      "birthDate": {
+        "year": 1948,
+        "displayCalendar": "solar"
+      },
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "p13",
+      "displayName": "Nguyễn Đức Thắng",
+      "gender": "male",
+      "isAlive": true,
+      "birthDate": {
+        "year": 1950,
+        "displayCalendar": "solar"
+      },
+      "occupations": [
+        {
+          "title": "Doanh nhân",
+          "sector": "business",
+          "startYear": 1990
+        }
+      ],
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "p13w",
+      "displayName": "Lý Thị Hương",
+      "gender": "female",
+      "isAlive": true,
+      "birthDate": {
+        "year": 1953,
+        "displayCalendar": "solar"
+      },
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "p14",
+      "displayName": "Nguyễn Nam Khoa",
+      "gender": "male",
+      "isAlive": true,
+      "birthDate": {
+        "year": 1940,
+        "displayCalendar": "solar"
+      },
+      "titles": [
+        {
+          "type": "bac_si",
+          "label": "Bác sĩ",
+          "awardedYear": 1968
+        }
+      ],
+      "occupations": [
+        {
+          "title": "Bác sĩ",
+          "organization": "Bệnh viện Việt Đức",
+          "sector": "government",
+          "startYear": 1968
+        }
+      ],
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "p15",
+      "displayName": "Nguyễn Thị Linh",
+      "gender": "female",
+      "isAlive": true,
+      "birthDate": {
+        "year": 1943,
+        "displayCalendar": "solar"
+      },
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "p16",
+      "displayName": "Nguyễn Đức Anh",
+      "gender": "male",
+      "isAlive": true,
+      "birthDate": {
+        "year": 1972,
+        "displayCalendar": "solar"
+      },
+      "birthPlace": "Hà Nội",
+      "occupations": [
+        {
+          "title": "Kỹ sư phần mềm",
+          "organization": "FPT Software",
+          "sector": "business",
+          "startYear": 2000
+        }
+      ],
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "p16w",
+      "displayName": "Ngô Thị Thu Hà",
+      "gender": "female",
+      "isAlive": true,
+      "birthDate": {
+        "year": 1975,
+        "displayCalendar": "solar"
+      },
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "p17",
+      "displayName": "Nguyễn Thị Khánh Linh",
+      "gender": "female",
+      "isAlive": true,
+      "birthDate": {
+        "year": 1975,
+        "displayCalendar": "solar"
+      },
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "p18",
+      "displayName": "Nguyễn Thắng Minh",
+      "gender": "male",
+      "isAlive": true,
+      "birthDate": {
+        "year": 1978,
+        "displayCalendar": "solar"
+      },
+      "occupations": [
+        {
+          "title": "Giám đốc",
+          "sector": "business",
+          "startYear": 2005
+        }
+      ],
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "p19",
+      "displayName": "Nguyễn Gia Bảo",
+      "gender": "male",
+      "isAlive": true,
+      "birthDate": {
+        "year": 2000,
+        "displayCalendar": "solar"
+      },
+      "birthPlace": "Hà Nội",
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "p20",
+      "displayName": "Nguyễn Khánh Ngân",
+      "gender": "female",
+      "isAlive": true,
+      "birthDate": {
+        "year": 2003,
+        "displayCalendar": "solar"
+      },
+      "birthPlace": "Hà Nội",
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    }
+  ],
+  "families": [
+    {
+      "id": "f1",
+      "personId": "p1",
+      "spouseId": "p1w",
+      "marriageStatus": "widowed",
+      "childIds": [
+        "p2",
+        "p3"
+      ],
+      "generation": 1
+    },
+    {
+      "id": "f2",
+      "personId": "p2",
+      "spouseId": "p2w",
+      "marriageStatus": "widowed",
+      "childIds": [
+        "p4",
+        "p5"
+      ],
+      "generation": 2,
+      "branchId": "branch-truong"
+    },
+    {
+      "id": "f3",
+      "personId": "p3",
+      "spouseId": "p3w",
+      "marriageStatus": "widowed",
+      "childIds": [
+        "p6"
+      ],
+      "generation": 2,
+      "branchId": "branch-thu"
+    },
+    {
+      "id": "f4",
+      "personId": "p4",
+      "spouseId": "p4w",
+      "marriageStatus": "widowed",
+      "childIds": [
+        "p7",
+        "p8",
+        "p9"
+      ],
+      "generation": 3
+    },
+    {
+      "id": "f5",
+      "personId": "p5",
+      "marriageStatus": "single",
+      "childIds": [],
+      "generation": 3
+    },
+    {
+      "id": "f6",
+      "personId": "p6",
+      "spouseId": "p6w",
+      "marriageStatus": "widowed",
+      "childIds": [
+        "p10",
+        "p11"
+      ],
+      "generation": 3
+    },
+    {
+      "id": "f7",
+      "personId": "p7",
+      "marriageStatus": "single",
+      "childIds": [],
+      "generation": 4
+    },
+    {
+      "id": "f8",
+      "personId": "p8",
+      "marriageStatus": "single",
+      "childIds": [],
+      "generation": 4
+    },
+    {
+      "id": "f9",
+      "personId": "p9",
+      "spouseId": "p9w",
+      "marriageStatus": "widowed",
+      "childIds": [
+        "p12",
+        "p13"
+      ],
+      "generation": 4
+    },
+    {
+      "id": "f10",
+      "personId": "p10",
+      "spouseId": "p10w",
+      "marriageStatus": "widowed",
+      "childIds": [
+        "p14",
+        "p15"
+      ],
+      "generation": 4
+    },
+    {
+      "id": "f11",
+      "personId": "p11",
+      "marriageStatus": "single",
+      "childIds": [],
+      "generation": 4
+    },
+    {
+      "id": "f12",
+      "personId": "p12",
+      "spouseId": "p12w",
+      "marriageStatus": "married",
+      "childIds": [
+        "p16",
+        "p17"
+      ],
+      "generation": 5
+    },
+    {
+      "id": "f13",
+      "personId": "p13",
+      "spouseId": "p13w",
+      "marriageStatus": "married",
+      "childIds": [
+        "p18"
+      ],
+      "generation": 5
+    },
+    {
+      "id": "f14",
+      "personId": "p14",
+      "marriageStatus": "single",
+      "childIds": [],
+      "generation": 5
+    },
+    {
+      "id": "f15",
+      "personId": "p15",
+      "marriageStatus": "single",
+      "childIds": [],
+      "generation": 5
+    },
+    {
+      "id": "f16",
+      "personId": "p16",
+      "spouseId": "p16w",
+      "marriageStatus": "married",
+      "childIds": [
+        "p19",
+        "p20"
+      ],
+      "generation": 6
+    },
+    {
+      "id": "f17",
+      "personId": "p17",
+      "marriageStatus": "single",
+      "childIds": [],
+      "generation": 6
+    },
+    {
+      "id": "f18",
+      "personId": "p18",
+      "marriageStatus": "single",
+      "childIds": [],
+      "generation": 6
+    },
+    {
+      "id": "f19",
+      "personId": "p19",
+      "marriageStatus": "single",
+      "childIds": [],
+      "generation": 7
+    },
+    {
+      "id": "f20",
+      "personId": "p20",
+      "marriageStatus": "single",
+      "childIds": [],
+      "generation": 7
+    }
+  ]
+}

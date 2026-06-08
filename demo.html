@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cây Gia Phả — Demo</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #fef9c3;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px 32px;
+}
+
+h1 {
+  font-size: 36px;
+  font-weight: 900;
+  color: #1e1b4b;
+  margin-bottom: 56px;
+  letter-spacing: -0.5px;
+}
+
+.tree-wrap {
+  position: relative;
+  width: 1060px;
+  height: 600px;
+}
+
+/* Generation labels */
+.gen-label {
+  position: absolute;
+  left: -110px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #78716c;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transform: translateY(-50%);
+  white-space: nowrap;
+}
+
+svg.connectors {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.person {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  z-index: 1;
+}
+
+.avatar-ring {
+  width: 78px;
+  height: 78px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 2.5px solid #1e1b4b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: box-shadow 0.2s, transform 0.15s;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.10);
+}
+
+.person:hover .avatar-ring {
+  box-shadow: 0 8px 24px rgba(30, 27, 75, 0.22);
+  transform: scale(1.10);
+}
+
+.person-label {
+  margin-top: 9px;
+  text-align: center;
+}
+
+.person-name {
+  font-size: 12px;
+  font-weight: 700;
+  color: #1e1b4b;
+  white-space: nowrap;
+}
+
+.person-years {
+  font-size: 10px;
+  color: #78716c;
+  margin-top: 2px;
+}
+</style>
+</head>
+<body>
+
+<h1>Cây Gia Phả</h1>
+
+<div style="position:relative">
+  <div class="tree-wrap" id="tree">
+
+    <!-- Generation labels -->
+    <div class="gen-label" style="top:110px">Thế hệ 1</div>
+    <div class="gen-label" style="top:300px">Thế hệ 2</div>
+    <div class="gen-label" style="top:490px">Thế hệ 3</div>
+
+    <svg class="connectors" id="lines">
+      <!--
+        Layout (r = 39):
+        Gen1:  Ông(430,110)   Bà(570,110)          midpoint=500
+        Gen2:  Cường(200,300) Dung(350,300) | Lan(500,300) | Dũng(800,300) Hoa(950,300)
+        Gen3:  Khoa(100,490)  Mai(300,490)  |              | Tuấn(700,490) Hương(900,490)
+
+        Cường tại x=200 = center(Khoa=100, Mai=300) → đường dọc xuyên thẳng qua Cường
+        Dũng  tại x=800 = center(Tuấn=700, Hương=900) → tương tự
+      -->
+
+      <!-- ── Gen1 marriage line (edge to edge) ─────────────────── -->
+      <line x1="469" y1="110" x2="531" y2="110"/>
+
+      <!-- ── Gen1 trunk → bar → drops thẳng vào từng người con ─── -->
+      <line x1="500" y1="110" x2="500" y2="205"/>
+      <line x1="200" y1="205" x2="800" y2="205"/>
+      <line x1="200" y1="205" x2="200" y2="261"/>
+      <line x1="500" y1="205" x2="500" y2="261"/>
+      <line x1="800" y1="205" x2="800" y2="261"/>
+
+      <!-- ── Cường×Dung marriage line ───────────────────────────── -->
+      <line x1="239" y1="300" x2="311" y2="300"/>
+      <!-- Cường (con ruột) → bar → Khoa, Mai -->
+      <line x1="200" y1="339" x2="200" y2="400"/>
+      <line x1="100" y1="400" x2="300" y2="400"/>
+      <line x1="100" y1="400" x2="100" y2="451"/>
+      <line x1="300" y1="400" x2="300" y2="451"/>
+
+      <!-- ── Dũng×Hoa marriage line ─────────────────────────────── -->
+      <line x1="839" y1="300" x2="911" y2="300"/>
+      <!-- Dũng (con ruột) → bar → Tuấn, Hương -->
+      <line x1="800" y1="339" x2="800" y2="400"/>
+      <line x1="700" y1="400" x2="900" y2="400"/>
+      <line x1="700" y1="400" x2="700" y2="451"/>
+      <line x1="900" y1="400" x2="900" y2="451"/>
+    </svg>
+
+  </div>
+</div>
+
+<script>
+const PERSON_ICON = `
+<svg viewBox="0 0 24 24" fill="none" stroke="#3730a3" stroke-width="1.5" width="42" height="42">
+  <circle cx="12" cy="8" r="3.5"/>
+  <path d="M4.5 21c0-4.5 3.5-7 7.5-7s7.5 2.5 7.5 7"
+        stroke-linecap="round" stroke-linejoin="round"/>
+</svg>`;
+
+// x, y = center of circle (r = 39)
+// Quy tắc: mỗi người con ruột đứng thẳng dưới đường dọc từ cha/mẹ
+//   Cường x=200 = center(Khoa=100, Mai=300)
+//   Dũng  x=800 = center(Tuấn=700, Hương=900)
+const people = [
+  // Thế hệ 1
+  { name: 'Nguyễn Văn An',    years: '1930 – 2005', x: 430, y: 110 },
+  { name: 'Trần Thị Bình',    years: '1933 – 2018', x: 570, y: 110 },
+  // Thế hệ 2
+  { name: 'Nguyễn Văn Cường', years: 'sinh 1955',   x: 200, y: 300 },
+  { name: 'Lê Thị Dung',      years: 'sinh 1959',   x: 350, y: 300 },
+  { name: 'Nguyễn Thị Lan',   years: 'sinh 1962',   x: 500, y: 300 },
+  { name: 'Nguyễn Văn Dũng',  years: 'sinh 1958',   x: 800, y: 300 },
+  { name: 'Phạm Thị Hoa',     years: 'sinh 1961',   x: 950, y: 300 },
+  // Thế hệ 3
+  { name: 'Nguyễn Minh Khoa', years: 'sinh 1980',   x: 100, y: 490 },
+  { name: 'Nguyễn Thị Mai',   years: 'sinh 1983',   x: 300, y: 490 },
+  { name: 'Nguyễn Anh Tuấn',  years: 'sinh 1985',   x: 700, y: 490 },
+  { name: 'Nguyễn Thu Hương', years: 'sinh 1988',   x: 900, y: 490 },
+];
+
+const tree = document.getElementById('tree');
+
+// Apply stroke style to all SVG lines
+document.querySelectorAll('#lines line').forEach(l => {
+  l.setAttribute('stroke', '#1e1b4b');
+  l.setAttribute('stroke-width', '2');
+  l.setAttribute('stroke-linecap', 'round');
+});
+
+// Render person nodes
+people.forEach(p => {
+  const div = document.createElement('div');
+  div.className = 'person';
+  div.style.left = p.x + 'px';
+  div.style.top  = p.y + 'px';
+  div.innerHTML = `
+    <div class="avatar-ring">${PERSON_ICON}</div>
+    <div class="person-label">
+      <div class="person-name">${p.name}</div>
+      <div class="person-years">${p.years}</div>
+    </div>`;
+  div.title = `${p.name} (${p.years})`;
+  tree.appendChild(div);
+});
+</script>
+
+</body>
+</html>

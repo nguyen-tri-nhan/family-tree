@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+frontend/packages/*/node_modules/
+
+# Build outputs
+frontend/packages/tree-lib/dist/
+frontend/packages/web-app/dist/
+frontend/packages/electron-app/out/
+frontend/packages/electron-app/dist/
+
+# TypeScript
+*.tsbuildinfo
+
+# Electron packaged app
+frontend/packages/electron-app/release/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo

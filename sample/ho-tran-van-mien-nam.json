@@ -1,0 +1,572 @@
+{
+  "version": "1.0",
+  "createdAt": "2026-01-01T00:00:00.000Z",
+  "updatedAt": "2026-06-08T00:00:00.000Z",
+  "clan": {
+    "id": "clan-tran-van-my-tho",
+    "name": "Họ Trần Văn — Mỹ Tho",
+    "surname": "Trần",
+    "origin": "Xã Bình Đức, Mỹ Tho, Tiền Giang",
+    "foundingYear": 1810,
+    "motto": "Hiếu nghĩa truyền đời, phúc đức lưu mãi",
+    "description": "Dòng họ Trần Văn gốc Mỹ Tho, từ cụ tổ Trần Văn Thiện khai canh vùng đất phương Nam từ thế kỷ 19. Truyền 9 đời.",
+    "generationPoems": [
+      "Thiện — Phú — Nghĩa — Trung — Khánh — Long — Phát — Vinh — Tài"
+    ],
+    "region": "south"
+  },
+  "branches": [
+    {
+      "id": "branch-truong-nam",
+      "name": "Chi Trưởng",
+      "shortName": "Chi I",
+      "type": "main",
+      "order": 1,
+      "ancestorPersonId": "q2",
+      "clanId": "clan-tran-van-my-tho"
+    },
+    {
+      "id": "branch-thu-nam",
+      "name": "Chi Thứ",
+      "shortName": "Chi II",
+      "type": "secondary",
+      "order": 2,
+      "ancestorPersonId": "q3",
+      "clanId": "clan-tran-van-my-tho"
+    }
+  ],
+  "persons": [
+    {
+      "id": "q1",
+      "displayName": "Trần Văn Thiện",
+      "gender": "male",
+      "isAlive": false,
+      "birthDate": { "year": 1810, "displayCalendar": "solar" },
+      "deathDate": { "year": 1882, "displayCalendar": "solar" },
+      "birthPlace": "Mỹ Tho, Tiền Giang",
+      "bio": "Cụ tổ khai canh, từ miền Trung vào Nam lập nghiệp. Khai hoang vùng đất Bình Đức.",
+      "names": { "taboo": "Thiện" },
+      "titles": [{ "type": "other", "label": "Cụ Tổ", "awardedYear": 1845 }],
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "q1w",
+      "displayName": "Lê Thị Tâm",
+      "gender": "female",
+      "isAlive": false,
+      "birthDate": { "year": 1815, "displayCalendar": "solar" },
+      "deathDate": { "year": 1888, "displayCalendar": "solar" },
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "q2",
+      "displayName": "Trần Văn Phú",
+      "gender": "male",
+      "isAlive": false,
+      "birthDate": { "year": 1838, "displayCalendar": "solar" },
+      "deathDate": { "year": 1910, "displayCalendar": "solar" },
+      "bio": "Con cả, thừa kế ruộng vườn, mở rộng canh tác lúa nước vùng Mỹ Tho.",
+      "occupations": [{ "title": "Điền chủ", "sector": "agriculture", "startYear": 1860 }],
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "q2w",
+      "displayName": "Nguyễn Thị Sen",
+      "gender": "female",
+      "isAlive": false,
+      "birthDate": { "year": 1842, "displayCalendar": "solar" },
+      "deathDate": { "year": 1915, "displayCalendar": "solar" },
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "q3",
+      "displayName": "Trần Văn Nghĩa",
+      "gender": "male",
+      "isAlive": false,
+      "birthDate": { "year": 1842, "displayCalendar": "solar" },
+      "deathDate": { "year": 1918, "displayCalendar": "solar" },
+      "bio": "Con thứ, buôn bán gạo, lập nghiệp ở Chợ Lớn.",
+      "occupations": [{ "title": "Thương nhân", "sector": "business", "startYear": 1865 }],
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "q3w",
+      "displayName": "Phan Thị Bông",
+      "gender": "female",
+      "isAlive": false,
+      "birthDate": { "year": 1846, "displayCalendar": "solar" },
+      "deathDate": { "year": 1922, "displayCalendar": "solar" },
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "q4",
+      "displayName": "Trần Phú Trung",
+      "gender": "male",
+      "isAlive": false,
+      "birthDate": { "year": 1865, "displayCalendar": "solar" },
+      "deathDate": { "year": 1940, "displayCalendar": "solar" },
+      "bio": "Tham gia phong trào Đông Du, làm thư ký cho quan Pháp để hoạt động bí mật.",
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "q4w",
+      "displayName": "Võ Thị Hương",
+      "gender": "female",
+      "isAlive": false,
+      "birthDate": { "year": 1869, "displayCalendar": "solar" },
+      "deathDate": { "year": 1945, "displayCalendar": "solar" },
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "q5",
+      "displayName": "Trần Thị Hoa",
+      "gender": "female",
+      "isAlive": false,
+      "birthDate": { "year": 1868, "displayCalendar": "solar" },
+      "deathDate": { "year": 1942, "displayCalendar": "solar" },
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "q6",
+      "displayName": "Trần Nghĩa Khánh",
+      "gender": "male",
+      "isAlive": false,
+      "birthDate": { "year": 1872, "displayCalendar": "solar" },
+      "deathDate": { "year": 1950, "displayCalendar": "solar" },
+      "bio": "Mở xưởng cưa gỗ ở Sài Gòn, tích luỹ tài sản cho dòng họ.",
+      "occupations": [{ "title": "Chủ xưởng", "sector": "business", "startYear": 1900 }],
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "q6w",
+      "displayName": "Lý Thị Kim",
+      "gender": "female",
+      "isAlive": false,
+      "birthDate": { "year": 1876, "displayCalendar": "solar" },
+      "deathDate": { "year": 1955, "displayCalendar": "solar" },
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "q7",
+      "displayName": "Trần Phú Long",
+      "gender": "male",
+      "isAlive": false,
+      "birthDate": { "year": 1895, "displayCalendar": "solar" },
+      "deathDate": { "year": 1968, "displayCalendar": "solar" },
+      "bio": "Tham gia kháng chiến chống Pháp, sau 1954 định cư tại Cần Thơ.",
+      "titles": [{ "type": "anh_hung", "label": "Liệt sĩ", "awardedYear": 1954 }],
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "q7w",
+      "displayName": "Huỳnh Thị Diệu",
+      "gender": "female",
+      "isAlive": false,
+      "birthDate": { "year": 1898, "displayCalendar": "solar" },
+      "deathDate": { "year": 1975, "displayCalendar": "solar" },
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "q8",
+      "displayName": "Trần Thị Bạch Tuyết",
+      "gender": "female",
+      "isAlive": false,
+      "birthDate": { "year": 1898, "displayCalendar": "solar" },
+      "deathDate": { "year": 1970, "displayCalendar": "solar" },
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "q9",
+      "displayName": "Trần Khánh Phát",
+      "gender": "male",
+      "isAlive": false,
+      "birthDate": { "year": 1900, "displayCalendar": "solar" },
+      "deathDate": { "year": 1980, "displayCalendar": "solar" },
+      "bio": "Bác sĩ y khoa đầu tiên của dòng họ, học tại Hà Nội rồi về hành nghề ở Sài Gòn.",
+      "titles": [{ "type": "bac_si", "label": "Bác sĩ", "awardedYear": 1928 }],
+      "occupations": [{ "title": "Bác sĩ y khoa", "organization": "Bệnh viện Chợ Rẫy", "sector": "government", "startYear": 1930, "endYear": 1970 }],
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "q9w",
+      "displayName": "Đỗ Thị Ngọc Lan",
+      "gender": "female",
+      "isAlive": false,
+      "birthDate": { "year": 1904, "displayCalendar": "solar" },
+      "deathDate": { "year": 1985, "displayCalendar": "solar" },
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "q10",
+      "displayName": "Trần Long Vinh",
+      "gender": "male",
+      "isAlive": false,
+      "birthDate": { "year": 1925, "displayCalendar": "solar" },
+      "deathDate": { "year": 2000, "displayCalendar": "solar" },
+      "bio": "Kỹ sư công chánh, xây dựng nhiều công trình tại miền Tây.",
+      "occupations": [{ "title": "Kỹ sư công chánh", "sector": "government", "startYear": 1950 }],
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "q10w",
+      "displayName": "Trương Thị Mỹ Duyên",
+      "gender": "female",
+      "isAlive": false,
+      "birthDate": { "year": 1928, "displayCalendar": "solar" },
+      "deathDate": { "year": 2005, "displayCalendar": "solar" },
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "q11",
+      "displayName": "Trần Thị Kim Loan",
+      "gender": "female",
+      "isAlive": false,
+      "birthDate": { "year": 1928, "displayCalendar": "solar" },
+      "deathDate": { "year": 2008, "displayCalendar": "solar" },
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "q12",
+      "displayName": "Trần Phát Thành",
+      "gender": "male",
+      "isAlive": false,
+      "birthDate": { "year": 1930, "displayCalendar": "solar" },
+      "deathDate": { "year": 2010, "displayCalendar": "solar" },
+      "bio": "Giáo sư Đại học Sài Gòn, chuyên ngành Kinh tế.",
+      "titles": [{ "type": "giao_su", "label": "GS.TS", "awardedYear": 1970 }],
+      "occupations": [{ "title": "Giáo sư", "organization": "ĐH Kinh Tế TP.HCM", "sector": "education", "startYear": 1960, "endYear": 2000 }],
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "q12w",
+      "displayName": "Phạm Thị Thanh Hà",
+      "gender": "female",
+      "isAlive": false,
+      "birthDate": { "year": 1934, "displayCalendar": "solar" },
+      "deathDate": { "year": 2015, "displayCalendar": "solar" },
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "q13",
+      "displayName": "Trần Vinh Tài",
+      "gender": "male",
+      "isAlive": true,
+      "birthDate": { "year": 1955, "displayCalendar": "solar" },
+      "birthPlace": "Cần Thơ",
+      "bio": "Doanh nhân thành đạt, sáng lập tập đoàn xuất khẩu gạo.",
+      "occupations": [{ "title": "Tổng Giám đốc", "organization": "Cty XNK Gạo Phương Nam", "sector": "business", "startYear": 1985 }],
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "q13w",
+      "displayName": "Mai Thị Bích Châu",
+      "gender": "female",
+      "isAlive": true,
+      "birthDate": { "year": 1958, "displayCalendar": "solar" },
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "q14",
+      "displayName": "Trần Vinh Quang",
+      "gender": "male",
+      "isAlive": true,
+      "birthDate": { "year": 1958, "displayCalendar": "solar" },
+      "birthPlace": "Sài Gòn",
+      "bio": "Kỹ sư IT, định cư tại Mỹ từ 1980.",
+      "occupations": [{ "title": "Software Engineer", "organization": "Google", "sector": "business", "startYear": 1995 }],
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "q15",
+      "displayName": "Trần Thị Phương Linh",
+      "gender": "female",
+      "isAlive": true,
+      "birthDate": { "year": 1960, "displayCalendar": "solar" },
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "q16",
+      "displayName": "Trần Phát Minh",
+      "gender": "male",
+      "isAlive": true,
+      "birthDate": { "year": 1962, "displayCalendar": "solar" },
+      "occupations": [{ "title": "Luật sư", "sector": "law", "startYear": 1990 }],
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "q16w",
+      "displayName": "Trần Thị Cẩm Tú",
+      "gender": "female",
+      "isAlive": true,
+      "birthDate": { "year": 1965, "displayCalendar": "solar" },
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "q17",
+      "displayName": "Trần Gia Khang",
+      "gender": "male",
+      "isAlive": true,
+      "birthDate": { "year": 1982, "displayCalendar": "solar" },
+      "birthPlace": "TP. Hồ Chí Minh",
+      "occupations": [{ "title": "Kỹ sư phần mềm", "organization": "VNG Corporation", "sector": "business", "startYear": 2008 }],
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "q17w",
+      "displayName": "Nguyễn Thị Mỹ Linh",
+      "gender": "female",
+      "isAlive": true,
+      "birthDate": { "year": 1985, "displayCalendar": "solar" },
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "q18",
+      "displayName": "Trần Thanh Xuân",
+      "gender": "female",
+      "isAlive": true,
+      "birthDate": { "year": 1985, "displayCalendar": "solar" },
+      "occupations": [{ "title": "Bác sĩ", "organization": "BV Đại học Y Dược TP.HCM", "sector": "government", "startYear": 2012 }],
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "q19",
+      "displayName": "Trần Minh Đăng",
+      "gender": "male",
+      "isAlive": true,
+      "birthDate": { "year": 1988, "displayCalendar": "solar" },
+      "occupations": [{ "title": "Kiến trúc sư", "sector": "business", "startYear": 2015 }],
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "q20",
+      "displayName": "Trần Gia Hân",
+      "gender": "female",
+      "isAlive": true,
+      "birthDate": { "year": 2010, "displayCalendar": "solar" },
+      "birthPlace": "TP. Hồ Chí Minh",
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "q21",
+      "displayName": "Trần Gia Bảo",
+      "gender": "male",
+      "isAlive": true,
+      "birthDate": { "year": 2013, "displayCalendar": "solar" },
+      "birthPlace": "TP. Hồ Chí Minh",
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "q22",
+      "displayName": "Trần Minh Khôi",
+      "gender": "male",
+      "isAlive": true,
+      "birthDate": { "year": 2015, "displayCalendar": "solar" },
+      "birthPlace": "TP. Hồ Chí Minh",
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    }
+  ],
+  "families": [
+    {
+      "id": "gf1",
+      "personId": "q1",
+      "spouseId": "q1w",
+      "marriageStatus": "widowed",
+      "childIds": ["q2", "q3"],
+      "generation": 1
+    },
+    {
+      "id": "gf2",
+      "personId": "q2",
+      "spouseId": "q2w",
+      "marriageStatus": "widowed",
+      "childIds": ["q4", "q5"],
+      "generation": 2,
+      "branchId": "branch-truong-nam"
+    },
+    {
+      "id": "gf3",
+      "personId": "q3",
+      "spouseId": "q3w",
+      "marriageStatus": "widowed",
+      "childIds": ["q6"],
+      "generation": 2,
+      "branchId": "branch-thu-nam"
+    },
+    {
+      "id": "gf4",
+      "personId": "q4",
+      "spouseId": "q4w",
+      "marriageStatus": "widowed",
+      "childIds": ["q7", "q8"],
+      "generation": 3
+    },
+    {
+      "id": "gf5",
+      "personId": "q5",
+      "marriageStatus": "single",
+      "childIds": [],
+      "generation": 3
+    },
+    {
+      "id": "gf6",
+      "personId": "q6",
+      "spouseId": "q6w",
+      "marriageStatus": "widowed",
+      "childIds": ["q9"],
+      "generation": 3
+    },
+    {
+      "id": "gf7",
+      "personId": "q7",
+      "spouseId": "q7w",
+      "marriageStatus": "widowed",
+      "childIds": ["q10", "q11"],
+      "generation": 4
+    },
+    {
+      "id": "gf8",
+      "personId": "q8",
+      "marriageStatus": "single",
+      "childIds": [],
+      "generation": 4
+    },
+    {
+      "id": "gf9",
+      "personId": "q9",
+      "spouseId": "q9w",
+      "marriageStatus": "widowed",
+      "childIds": ["q12"],
+      "generation": 4
+    },
+    {
+      "id": "gf10",
+      "personId": "q10",
+      "spouseId": "q10w",
+      "marriageStatus": "widowed",
+      "childIds": ["q13", "q14", "q15"],
+      "generation": 5
+    },
+    {
+      "id": "gf11",
+      "personId": "q11",
+      "marriageStatus": "single",
+      "childIds": [],
+      "generation": 5
+    },
+    {
+      "id": "gf12",
+      "personId": "q12",
+      "spouseId": "q12w",
+      "marriageStatus": "widowed",
+      "childIds": ["q16"],
+      "generation": 5
+    },
+    {
+      "id": "gf13",
+      "personId": "q13",
+      "spouseId": "q13w",
+      "marriageStatus": "married",
+      "childIds": ["q17", "q18"],
+      "generation": 6
+    },
+    {
+      "id": "gf14",
+      "personId": "q14",
+      "marriageStatus": "single",
+      "childIds": [],
+      "generation": 6
+    },
+    {
+      "id": "gf15",
+      "personId": "q15",
+      "marriageStatus": "single",
+      "childIds": [],
+      "generation": 6
+    },
+    {
+      "id": "gf16",
+      "personId": "q16",
+      "spouseId": "q16w",
+      "marriageStatus": "married",
+      "childIds": ["q19"],
+      "generation": 6
+    },
+    {
+      "id": "gf17",
+      "personId": "q17",
+      "spouseId": "q17w",
+      "marriageStatus": "married",
+      "childIds": ["q20", "q21"],
+      "generation": 7
+    },
+    {
+      "id": "gf18",
+      "personId": "q18",
+      "marriageStatus": "single",
+      "childIds": [],
+      "generation": 7
+    },
+    {
+      "id": "gf19",
+      "personId": "q19",
+      "marriageStatus": "single",
+      "childIds": ["q22"],
+      "generation": 7
+    },
+    {
+      "id": "gf20",
+      "personId": "q20",
+      "marriageStatus": "single",
+      "childIds": [],
+      "generation": 8
+    },
+    {
+      "id": "gf21",
+      "personId": "q21",
+      "marriageStatus": "single",
+      "childIds": [],
+      "generation": 8
+    },
+    {
+      "id": "gf22",
+      "personId": "q22",
+      "marriageStatus": "single",
+      "childIds": [],
+      "generation": 8
+    }
+  ]
+}
