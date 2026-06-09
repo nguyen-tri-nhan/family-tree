@@ -4,6 +4,8 @@ export type { FamilyTreeProps } from './FamilyTree'
 export { App } from './App'
 export type { AppProps } from './App'
 
+export { AppRouter } from './Router'
+
 export { DateInput }      from './components/DateInput'
 export { PersonForm }     from './components/PersonForm'
 export { PersonPanel }    from './components/PersonPanel'

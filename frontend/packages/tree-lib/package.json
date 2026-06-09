@@ -29,7 +29,8 @@
   },
   "dependencies": {
     "jspdf": "^2.5.2",
-    "lunar-date-vn": "^1.0.6"
+    "lunar-date-vn": "^1.0.6",
+    "react-router-dom": "^7.17.0"
   },
   "devDependencies": {
     "@types/d3": "^7.4.3",
