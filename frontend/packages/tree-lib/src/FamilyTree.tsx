@@ -8,6 +8,8 @@ const R          = 36
 const SPOUSE_GAP = 130
 const NODE_W     = 260
 const NODE_H     = 200
+/** Exported so export utilities can align generation markers with tree rows. */
+export const TREE_NODE_HEIGHT = NODE_H
 
 // ── Internal tree node ──────────────────────────────────────────
 interface TreeNode {

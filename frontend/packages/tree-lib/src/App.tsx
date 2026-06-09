@@ -8,10 +8,10 @@ import { IssuePanel }    from './components/IssuePanel'
 import { computeKinship } from './kinship'
 import type { Region } from './kinship'
 import { validateDocument } from './utils/validateTree'
-import { ClanForm }     from './components/ClanForm'
-import { useStorage }   from './storage'
-import { deletePerson } from './mutations'
-import { downloadPng, downloadPdf } from './utils/exportTree'
+import { ClanForm }       from './components/ClanForm'
+import { ExportDialog }   from './components/ExportDialog'
+import { useStorage }     from './storage'
+import { deletePerson }   from './mutations'
 import type { FtreeDocument } from './types'
 
 type FormMode =
@@ -49,8 +49,9 @@ export function App({
   const [highlight,      setHighlight]  = useState<string | undefined>()
   const [compareMode,    setCompareMode] = useState<CompareMode>({ active: false })
   const [kinshipPair,    setKinshipPair] = useState<{ a: string; b: string } | null>(null)
-  const [showClanForm,   setShowClanForm] = useState(false)
-  const [showIssues,     setShowIssues]   = useState(false)
+  const [showClanForm,   setShowClanForm]  = useState(false)
+  const [showIssues,     setShowIssues]    = useState(false)
+  const [showExport,     setShowExport]    = useState(false)
 
   // ── Theme toggle ──────────────────────────────────────────────
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -176,16 +177,6 @@ export function App({
     return computeKinship(doc, kinshipPair.a, kinshipPair.b, region)?.path
   }, [kinshipPair, doc])
 
-  async function handleExportPng() {
-    if (!treeRef.current || !doc) return
-    await downloadPng(treeRef.current, doc.clan.name)
-  }
-
-  async function handleExportPdf() {
-    if (!treeRef.current || !doc) return
-    await downloadPdf(treeRef.current, doc.clan.name)
-  }
-
   const dragStyle = headerDrag
     ? { WebkitAppRegion: 'drag', userSelect: 'none' } as React.CSSProperties
     : undefined
@@ -244,8 +235,7 @@ export function App({
         <div style={{ display: 'flex', gap: 6, ...noDragStyle }}>
           <button onClick={handleOpen}                  style={btn(false)}>Mở file</button>
           <button onClick={handleSave}                  style={btn(true)}>{saved ? '✓ Đã lưu' : 'Lưu'}</button>
-          <button onClick={handleExportPng}             style={btn(false)}>↓ PNG</button>
-          <button onClick={handleExportPdf}             style={btn(false)}>↓ PDF</button>
+          <button onClick={() => setShowExport(true)}    style={btn(false)}>↓ Xuất</button>
           <button onClick={() => setShowClanForm(true)} style={btn(false)}>⚙</button>
           {issues.length > 0 && (
             <button onClick={() => setShowIssues(true)} style={issueBtn(errorCount > 0)}>
@@ -333,6 +323,14 @@ export function App({
           issues={issues}
           onClose={() => setShowIssues(false)}
           onSelect={personId => { setHighlight(personId); setShowIssues(false) }}
+        />
+      )}
+
+      {showExport && doc && (
+        <ExportDialog
+          svgEl={treeRef.current}
+          doc={doc}
+          onClose={() => setShowExport(false)}
         />
       )}
     </div>

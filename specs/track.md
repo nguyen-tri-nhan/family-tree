@@ -232,6 +232,7 @@ const next = depth === 0
 | Custom xưng hô per-pair | §3 → v3 | — |
 | Quan hệ xuyên nhánh phức tạp (Case 2: họ hàng xa) | §2d | Thấp |
 | Tag "Thủy Tổ / Khai Tổ" cho node root | v-next | Thấp |
+| **About / Tác giả** — modal hoặc hash-routed page, ghi tên + contact tác giả; dùng hash routing nếu muốn URL thực sự (`/#/about`) để hoạt động cả web lẫn Electron; nếu chỉ cần modal thì không cần thêm dependency | — | Thấp |
 
 ---
 
