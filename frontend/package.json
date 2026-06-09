@@ -5,6 +5,9 @@
   "workspaces": [
     "packages/*"
   ],
+  "scripts": {
+    "version": "lerna version"
+  },
   "devDependencies": {
     "@types/d3": "^7.4.3",
     "electron": "42.3.3",
