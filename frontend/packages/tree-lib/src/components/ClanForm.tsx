@@ -32,7 +32,7 @@ export function ClanForm({ doc, onSubmit, onClose }: ClanFormProps) {
     <div style={overlay} onClick={onClose}>
       <div style={modal} onClick={e => e.stopPropagation()}>
         <div style={header}>
-          <span style={{ fontWeight: 800, fontSize: 15, color: '#1e1b4b' }}>Thông tin dòng họ</span>
+          <span style={{ fontWeight: 800, fontSize: 15, color: 'var(--t-text)' }}>Thông tin dòng họ</span>
           <button onClick={onClose} style={closeBtn}>✕</button>
         </div>
 
@@ -92,7 +92,7 @@ export function ClanForm({ doc, onSubmit, onClose }: ClanFormProps) {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-      <label style={{ fontSize: 12, fontWeight: 700, color: '#6b7280' }}>{label}</label>
+      <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--t-text-3)' }}>{label}</label>
       {children}
     </div>
   )
@@ -108,12 +108,12 @@ function RegionOption({
       onClick={() => onChange(value)}
       style={{
         flex: 1, padding: '10px 12px', borderRadius: 8, cursor: 'pointer', textAlign: 'left',
-        border: `2px solid ${active ? '#1e1b4b' : '#e5e7eb'}`,
-        background: active ? '#f0f0ff' : '#fff',
+        border: `2px solid ${active ? 'var(--t-brand)' : 'var(--t-border)'}`,
+        background: active ? 'var(--t-brand-subtle)' : 'var(--t-card)',
       }}
     >
-      <div style={{ fontWeight: 700, fontSize: 13, color: active ? '#1e1b4b' : '#374151' }}>{label}</div>
-      <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 2 }}>{sub}</div>
+      <div style={{ fontWeight: 700, fontSize: 13, color: active ? 'var(--t-brand)' : 'var(--t-text-2)' }}>{label}</div>
+      <div style={{ fontSize: 11, color: 'var(--t-text-4)', marginTop: 2 }}>{sub}</div>
     </button>
   )
 }
@@ -127,7 +127,7 @@ const overlay: React.CSSProperties = {
 }
 
 const modal: React.CSSProperties = {
-  background: '#fff', borderRadius: 12,
+  background: 'var(--t-card)', borderRadius: 12,
   boxShadow: '0 20px 50px rgba(0,0,0,0.2)',
   padding: 24, width: 420, maxWidth: 'calc(100vw - 32px)',
   maxHeight: 'calc(100vh - 60px)', overflowY: 'auto',
@@ -138,21 +138,25 @@ const header: React.CSSProperties = {
 }
 
 const closeBtn: React.CSSProperties = {
-  background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, color: '#9ca3af', padding: 2,
+  background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, color: 'var(--t-text-4)', padding: 2,
 }
 
 const input: React.CSSProperties = {
   width: '100%', padding: '8px 10px', borderRadius: 7,
-  border: '1px solid #d1d5db', fontSize: 13, color: '#1f2937',
+  border: '1px solid var(--t-border-2)', fontSize: 13,
+  color: 'var(--t-text)', background: 'var(--t-bg)',
   outline: 'none', boxSizing: 'border-box',
 }
 
 const btnPrimary: React.CSSProperties = {
   padding: '8px 20px', borderRadius: 8, border: 'none',
-  background: '#1e1b4b', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+  background: 'var(--t-brand)', color: 'var(--t-brand-fg)',
+  fontSize: 13, fontWeight: 700, cursor: 'pointer',
 }
 
 const btnSecondary: React.CSSProperties = {
-  padding: '8px 16px', borderRadius: 8, border: '1px solid #d1d5db',
-  background: '#fff', color: '#374151', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+  padding: '8px 16px', borderRadius: 8,
+  border: '1px solid var(--t-border-2)',
+  background: 'var(--t-btn2-bg)', color: 'var(--t-btn2-fg)',
+  fontSize: 13, fontWeight: 600, cursor: 'pointer',
 }

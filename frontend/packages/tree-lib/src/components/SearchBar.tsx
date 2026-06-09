@@ -32,7 +32,7 @@ export function SearchBar({ doc, onSelect }: SearchBarProps) {
   return (
     <div style={{ position: 'relative' }}>
       <div style={searchBox}>
-        <span style={{ color: '#9ca3af', fontSize: 14, lineHeight: 1 }}>⌕</span>
+        <span style={{ color: 'var(--t-text-4)', fontSize: 14, lineHeight: 1 }}>⌕</span>
         <input
           value={query}
           onChange={e => { setQuery(e.target.value); setOpen(true) }}
@@ -56,14 +56,14 @@ export function SearchBar({ doc, onSelect }: SearchBarProps) {
               key={p.id}
               onMouseDown={() => handleSelect(p.id)}
               style={dropdownItem}
-              onMouseEnter={e => (e.currentTarget.style.background = '#f3f4f6')}
-              onMouseLeave={e => (e.currentTarget.style.background = '#fff')}
+              onMouseEnter={e => (e.currentTarget.style.background = 'var(--t-surface)')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'var(--t-card)')}
             >
-              <span style={{ fontWeight: 600, fontSize: 13, color: '#1e1b4b' }}>
+              <span style={{ fontWeight: 600, fontSize: 13, color: 'var(--t-text)' }}>
                 {p.displayName}
               </span>
               {p.birthDate?.year && (
-                <span style={{ fontSize: 11, color: '#9ca3af', marginLeft: 6 }}>
+                <span style={{ fontSize: 11, color: 'var(--t-text-4)', marginLeft: 6 }}>
                   {p.birthDate.year}
                 </span>
               )}
@@ -73,7 +73,7 @@ export function SearchBar({ doc, onSelect }: SearchBarProps) {
       )}
 
       {open && query.trim() && results.length === 0 && (
-        <div style={{ ...dropdown, padding: '10px 14px', color: '#9ca3af', fontSize: 13 }}>
+        <div style={{ ...dropdown, padding: '10px 14px', color: 'var(--t-text-4)', fontSize: 13 }}>
           Không tìm thấy
         </div>
       )}
@@ -83,7 +83,7 @@ export function SearchBar({ doc, onSelect }: SearchBarProps) {
 
 const searchBox: React.CSSProperties = {
   display: 'flex', alignItems: 'center', gap: 6,
-  background: '#fff', border: '1px solid #d1d5db',
+  background: 'var(--t-card)', border: '1px solid var(--t-border-2)',
   borderRadius: 8, padding: '5px 10px',
   width: 220,
 }
@@ -91,19 +91,20 @@ const searchBox: React.CSSProperties = {
 const inputStyle: React.CSSProperties = {
   border: 'none', outline: 'none', fontSize: 13,
   flex: 1, background: 'transparent',
+  color: 'var(--t-text)',
   minWidth: 0,
 }
 
 const clearBtn: React.CSSProperties = {
   border: 'none', background: 'none', cursor: 'pointer',
-  color: '#9ca3af', fontSize: 12, padding: '0 2px',
+  color: 'var(--t-text-4)', fontSize: 12, padding: '0 2px',
   lineHeight: 1,
 }
 
 const dropdown: React.CSSProperties = {
   position: 'absolute', top: '100%', left: 0,
-  marginTop: 4, background: '#fff',
-  border: '1px solid #e5e7eb', borderRadius: 8,
+  marginTop: 4, background: 'var(--t-card)',
+  border: '1px solid var(--t-border)', borderRadius: 8,
   boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
   zIndex: 200, minWidth: 240, overflow: 'hidden',
 }
@@ -111,5 +112,5 @@ const dropdown: React.CSSProperties = {
 const dropdownItem: React.CSSProperties = {
   display: 'flex', alignItems: 'center',
   padding: '8px 14px', cursor: 'pointer',
-  background: '#fff', transition: 'background 0.1s',
+  background: 'var(--t-card)', transition: 'background 0.1s',
 }

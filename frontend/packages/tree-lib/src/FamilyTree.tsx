@@ -127,12 +127,18 @@ function drawPersonIcon(g: D3G, color: string) {
     .attr('stroke-width', 1.5).attr('stroke-linecap', 'round')
 }
 
+interface DrawColors {
+  text: string; text5: string; maleBg: string; femaleBg: string
+  brand: string; brandFg: string; surface: string; text3: string; border: string
+}
+
 function drawPerson(
-  parent: D3G, cx: number, cy: number, person: Person, onClick?: (id: string) => void,
+  parent: D3G, cx: number, cy: number, person: Person, colors: DrawColors,
+  onClick?: (id: string) => void,
 ) {
   const isFemale = person.gender === 'female'
-  const color    = isFemale ? '#be185d' : '#1d4ed8'
-  const bg       = isFemale ? '#fdf2f8' : '#eff6ff'
+  const iconColor = isFemale ? '#be185d' : '#1d4ed8'
+  const bg        = isFemale ? colors.femaleBg : colors.maleBg
 
   const g = parent.append('g')
     .attr('transform', `translate(${cx},${cy})`)
@@ -141,27 +147,27 @@ function drawPerson(
 
   g.append('circle').attr('r', R + 4).attr('fill', 'transparent')
   g.append('circle').attr('r', R)
-    .attr('fill', bg).attr('stroke', '#1e1b4b').attr('stroke-width', 2.5)
+    .attr('fill', bg).attr('stroke', colors.text).attr('stroke-width', 2.5)
     .attr('filter', 'drop-shadow(0 2px 6px rgba(0,0,0,0.12))')
 
-  drawPersonIcon(g, color)
+  drawPersonIcon(g, iconColor)
 
   const words = person.displayName.split(' ')
   const line1 = words.length > 3 ? words.slice(0, -2).join(' ') : person.displayName
   const line2 = words.length > 3 ? words.slice(-2).join(' ')    : null
 
   g.append('text').attr('y', R + 16).attr('text-anchor', 'middle')
-    .attr('font-size', '11px').attr('font-weight', '700').attr('fill', '#1e1b4b')
+    .attr('font-size', '11px').attr('font-weight', '700').attr('fill', colors.text)
     .attr('font-family', 'system-ui, sans-serif').text(line1)
 
   if (line2) {
     g.append('text').attr('y', R + 29).attr('text-anchor', 'middle')
-      .attr('font-size', '11px').attr('font-weight', '700').attr('fill', '#1e1b4b')
+      .attr('font-size', '11px').attr('font-weight', '700').attr('fill', colors.text)
       .attr('font-family', 'system-ui, sans-serif').text(line2)
   }
 
   g.append('text').attr('y', R + (line2 ? 43 : 30)).attr('text-anchor', 'middle')
-    .attr('font-size', '10px').attr('fill', '#78716c')
+    .attr('font-size', '10px').attr('fill', colors.text5)
     .attr('font-family', 'system-ui, sans-serif').text(formatYears(person))
 }
 
@@ -173,6 +179,7 @@ export interface FamilyTreeProps {
   onAddChild?:        (parentFamilyId: string) => void
   onAddSpouse?:       (familyId: string) => void
   highlightPersonId?: string
+  darkMode?:          boolean
 }
 
 type NodePos = { x: number; y: number }
@@ -180,7 +187,7 @@ type NodePos = { x: number; y: number }
 const FamilyTree = forwardRef<SVGSVGElement, FamilyTreeProps>(function FamilyTree({
   document: doc = DEMO_DOCUMENT,
   onPersonClick, onAddChild, onAddSpouse,
-  highlightPersonId,
+  highlightPersonId, darkMode = false,
 }, forwardedRef) {
   const svgRef   = useRef<SVGSVGElement>(null)
   const zoomRef  = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null)
@@ -195,6 +202,16 @@ const FamilyTree = forwardRef<SVGSVGElement, FamilyTreeProps>(function FamilyTre
   useEffect(() => {
     const el = svgRef.current
     if (!el) return
+
+    const colors: DrawColors = darkMode ? {
+      text:     '#f1f5f9', text3: '#94a3b8', text5: '#a8a29e',
+      border:   '#334155', maleBg: '#0d1f48', femaleBg: '#3d0f2a',
+      brand:    '#4f46e5', brandFg: '#ffffff', surface: '#1e293b',
+    } : {
+      text:     '#1e1b4b', text3: '#6b7280', text5: '#78716c',
+      border:   '#e5e7eb', maleBg: '#eff6ff', femaleBg: '#fdf2f8',
+      brand:    '#1e1b4b', brandFg: '#ffffff', surface: '#f9fafb',
+    }
 
     const prevTransform = d3.zoomTransform(el)
 
@@ -273,10 +290,10 @@ const FamilyTree = forwardRef<SVGSVGElement, FamilyTreeProps>(function FamilyTre
           .attr('x1', x - SPOUSE_GAP / 2 + R).attr('y1', y)
           .attr('x2', x + SPOUSE_GAP / 2 - R).attr('y2', y)
           .attr('stroke', '#64748b').attr('stroke-width', 2)
-        drawPerson(nodeLayer, x + SPOUSE_GAP / 2, y, d.spouse,  onPersonClick)
-        drawPerson(nodeLayer, x - SPOUSE_GAP / 2, y, d.person, onPersonClick)
+        drawPerson(nodeLayer, x + SPOUSE_GAP / 2, y, d.spouse,  colors, onPersonClick)
+        drawPerson(nodeLayer, x - SPOUSE_GAP / 2, y, d.person, colors, onPersonClick)
       } else {
-        drawPerson(nodeLayer, x, y, d.person, onPersonClick)
+        drawPerson(nodeLayer, x, y, d.person, colors, onPersonClick)
       }
 
       // Collapse / expand badge
@@ -296,12 +313,12 @@ const FamilyTree = forwardRef<SVGSVGElement, FamilyTreeProps>(function FamilyTre
           })
         badge.append('circle')
           .attr('r', 10)
-          .attr('fill', isCollapsed ? '#1e1b4b' : '#f1f5f9')
-          .attr('stroke', '#94a3b8').attr('stroke-width', 1.5)
+          .attr('fill', isCollapsed ? colors.brand : colors.surface)
+          .attr('stroke', colors.border).attr('stroke-width', 1.5)
         badge.append('text')
           .attr('text-anchor', 'middle').attr('dy', '0.35em')
           .attr('font-size', '9px').attr('font-weight', '700')
-          .attr('fill', isCollapsed ? '#fff' : '#475569')
+          .attr('fill', isCollapsed ? colors.brandFg : colors.text3)
           .text(isCollapsed ? `+${d.hiddenCount}` : '−')
       }
 
@@ -337,7 +354,7 @@ const FamilyTree = forwardRef<SVGSVGElement, FamilyTreeProps>(function FamilyTre
           .text('⊕')
       }
     })
-  }, [doc, collapsed, onPersonClick, onAddChild, onAddSpouse])
+  }, [doc, collapsed, onPersonClick, onAddChild, onAddSpouse, darkMode])  // darkMode triggers D3 re-read CSS vars
 
   // ── Highlight ring (no full redraw) ───────────────────────────
   useEffect(() => {
@@ -372,7 +389,7 @@ const FamilyTree = forwardRef<SVGSVGElement, FamilyTreeProps>(function FamilyTre
   return (
     <svg
       ref={svgRef}
-      style={{ display: 'block', background: '#fef9c3', width: '100%', minHeight: '100vh' }}
+      style={{ display: 'block', background: 'var(--t-tree-bg)', width: '100%', minHeight: '100vh' }}
     />
   )
 })
