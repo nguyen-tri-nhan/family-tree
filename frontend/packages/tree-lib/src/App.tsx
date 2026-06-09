@@ -1,13 +1,17 @@
-import { useRef, useState, useEffect, useLayoutEffect, useCallback } from 'react'
+import { useRef, useState, useEffect, useLayoutEffect, useCallback, useMemo } from 'react'
 import FamilyTree from './FamilyTree'
 import { PersonPanel }  from './components/PersonPanel'
 import { PersonForm }   from './components/PersonForm'
 import { SearchBar }    from './components/SearchBar'
 import { KinshipDrawer } from './components/KinshipDrawer'
-import { ClanForm }     from './components/ClanForm'
-import { useStorage }   from './storage'
-import { deletePerson } from './mutations'
-import { downloadPng, downloadPdf } from './utils/exportTree'
+import { IssuePanel }    from './components/IssuePanel'
+import { computeKinship } from './kinship'
+import type { Region } from './kinship'
+import { validateDocument } from './utils/validateTree'
+import { ClanForm }       from './components/ClanForm'
+import { ExportDialog }   from './components/ExportDialog'
+import { useStorage }     from './storage'
+import { deletePerson }   from './mutations'
 import type { FtreeDocument } from './types'
 
 type FormMode =
@@ -26,6 +30,7 @@ export interface AppProps {
   headerDrag?:           boolean
   onHeaderDoubleClick?:  (e: React.MouseEvent<HTMLElement>) => void
   welcomeFooter?:        React.ReactNode
+  onAbout?:              () => void
 }
 
 export function App({
@@ -33,6 +38,7 @@ export function App({
   headerDrag          = false,
   onHeaderDoubleClick,
   welcomeFooter,
+  onAbout,
 }: AppProps) {
   const storage = useStorage()
   const treeRef = useRef<SVGSVGElement>(null)
@@ -45,7 +51,9 @@ export function App({
   const [highlight,      setHighlight]  = useState<string | undefined>()
   const [compareMode,    setCompareMode] = useState<CompareMode>({ active: false })
   const [kinshipPair,    setKinshipPair] = useState<{ a: string; b: string } | null>(null)
-  const [showClanForm,   setShowClanForm] = useState(false)
+  const [showClanForm,   setShowClanForm]  = useState(false)
+  const [showIssues,     setShowIssues]    = useState(false)
+  const [showExport,     setShowExport]    = useState(false)
 
   // ── Theme toggle ──────────────────────────────────────────────
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -72,6 +80,13 @@ export function App({
     window.addEventListener('keydown', h)
     return () => window.removeEventListener('keydown', h)
   }, [compareMode.active])
+
+  useEffect(() => {
+    if (!kinshipPair) return
+    const h = (e: KeyboardEvent) => { if (e.key === 'Escape') setKinshipPair(null) }
+    window.addEventListener('keydown', h)
+    return () => window.removeEventListener('keydown', h)
+  }, [kinshipPair])
 
   async function handleNew() {
     try {
@@ -122,15 +137,23 @@ export function App({
     }
   }
 
-  // Ref pattern: giữ compareMode mới nhất mà không tạo reference mới cho callback
-  const compareModeRef = useRef(compareMode)
+  // Ref pattern: giữ compareMode + kinshipPair mới nhất mà không tạo reference mới cho callback
+  const compareModeRef  = useRef(compareMode)
   useEffect(() => { compareModeRef.current = compareMode }, [compareMode])
+
+  const kinshipPairRef = useRef(kinshipPair)
+  useEffect(() => { kinshipPairRef.current = kinshipPair }, [kinshipPair])
 
   const handlePersonClick = useCallback((personId: string) => {
     const cm = compareModeRef.current
     if (cm.active) {
       setKinshipPair({ a: cm.firstPersonId, b: personId })
       setCompareMode({ active: false })
+      return
+    }
+    // If kinship panel is open, clicking a tree node updates the target
+    if (kinshipPairRef.current) {
+      setKinshipPair(prev => prev ? { ...prev, b: personId } : null)
       return
     }
     setSelected(personId)
@@ -145,15 +168,16 @@ export function App({
     setFormMode({ type: 'add-spouse', familyId })
   }, [])
 
-  async function handleExportPng() {
-    if (!treeRef.current || !doc) return
-    await downloadPng(treeRef.current, doc.clan.name)
-  }
+  const issues          = useMemo(() => doc ? validateDocument(doc) : [], [doc])
+  const issuePersonIds  = useMemo(() => new Set(issues.flatMap(i => i.personIds)), [issues])
+  const errorCount      = issues.filter(i => i.severity === 'error').length
+  const warningCount    = issues.filter(i => i.severity === 'warning').length
 
-  async function handleExportPdf() {
-    if (!treeRef.current || !doc) return
-    await downloadPdf(treeRef.current, doc.clan.name)
-  }
+  const kinshipHighlightPath = useMemo(() => {
+    if (!kinshipPair || !doc) return undefined
+    const region: Region = doc.clan.region ?? 'north'
+    return computeKinship(doc, kinshipPair.a, kinshipPair.b, region)?.path
+  }, [kinshipPair, doc])
 
   const dragStyle = headerDrag
     ? { WebkitAppRegion: 'drag', userSelect: 'none' } as React.CSSProperties
@@ -213,10 +237,17 @@ export function App({
         <div style={{ display: 'flex', gap: 6, ...noDragStyle }}>
           <button onClick={handleOpen}                  style={btn(false)}>Mở file</button>
           <button onClick={handleSave}                  style={btn(true)}>{saved ? '✓ Đã lưu' : 'Lưu'}</button>
-          <button onClick={handleExportPng}             style={btn(false)}>↓ PNG</button>
-          <button onClick={handleExportPdf}             style={btn(false)}>↓ PDF</button>
+          <button onClick={() => setShowExport(true)}    style={btn(false)}>↓ Xuất</button>
           <button onClick={() => setShowClanForm(true)} style={btn(false)}>⚙</button>
+          {issues.length > 0 && (
+            <button onClick={() => setShowIssues(true)} style={issueBtn(errorCount > 0)}>
+              {errorCount > 0 ? `■ ${errorCount} lỗi` : `▲ ${warningCount}`}
+            </button>
+          )}
           <button onClick={toggleTheme}                 style={btn(false)} title={theme === 'dark' ? 'Chuyển sang sáng' : 'Chuyển sang tối'}>{theme === 'dark' ? '☀' : '🌙'}</button>
+          {onAbout && (
+            <button onClick={onAbout} style={btn(false)} title="Về ứng dụng">ⓘ</button>
+          )}
         </div>
       </header>
 
@@ -232,6 +263,8 @@ export function App({
           ref={treeRef}
           document={doc}
           highlightPersonId={highlight}
+          highlightPath={kinshipHighlightPath}
+          issuePersonIds={issuePersonIds}
           onPersonClick={handlePersonClick}
           onAddChild={handleAddChild}
           onAddSpouse={handleAddSpouse}
@@ -289,6 +322,22 @@ export function App({
           onClose={() => setShowClanForm(false)}
         />
       )}
+
+      {showIssues && (
+        <IssuePanel
+          issues={issues}
+          onClose={() => setShowIssues(false)}
+          onSelect={personId => { setHighlight(personId); setShowIssues(false) }}
+        />
+      )}
+
+      {showExport && doc && (
+        <ExportDialog
+          svgEl={treeRef.current}
+          doc={doc}
+          onClose={() => setShowExport(false)}
+        />
+      )}
     </div>
   )
 }
@@ -318,6 +367,16 @@ function btn(primary: boolean): React.CSSProperties {
     fontSize: 13, fontWeight: 700, cursor: 'pointer',
     background: primary ? 'var(--t-brand)'   : 'var(--t-btn2-bg)',
     color:      primary ? 'var(--t-brand-fg)' : 'var(--t-btn2-fg)',
+    whiteSpace: 'nowrap',
+  }
+}
+
+function issueBtn(hasError: boolean): React.CSSProperties {
+  return {
+    padding: '6px 10px', borderRadius: 8, border: 'none',
+    fontSize: 12, fontWeight: 700, cursor: 'pointer',
+    background: hasError ? '#fef2f2' : '#fffbeb',
+    color:      hasError ? '#dc2626' : '#d97706',
     whiteSpace: 'nowrap',
   }
 }

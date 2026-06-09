@@ -1,4 +1,4 @@
-import { App } from '@family-tree/tree-lib'
+import { AppRouter } from '@family-tree/tree-lib'
 
 const RELEASES = 'https://github.com/nguyen-tri-nhan/family-tree/releases/latest'
 
@@ -23,5 +23,5 @@ const downloadBtn: React.CSSProperties = {
 }
 
 export default function WebApp() {
-  return <App welcomeFooter={<DownloadSection />} />
+  return <AppRouter welcomeFooter={<DownloadSection />} />
 }

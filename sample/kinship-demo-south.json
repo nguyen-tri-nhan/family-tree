@@ -1,0 +1,624 @@
+{
+  "version": "1.0",
+  "createdAt": "2026-06-10T00:00:00.000Z",
+  "updatedAt": "2026-06-10T00:00:00.000Z",
+  "clan": {
+    "id": "clan-kinship-demo-south",
+    "name": "Demo Xưng Hô — 7 Đời (Nam)",
+    "surname": "Nguyễn",
+    "region": "south",
+    "description": "Demo 7 đời, miền Nam, cover tất cả trường hợp xưng hô: Ông Sơ → Ông Kỵ → Cố → Ông/Bà nội/ngoại → Bác/Chú/Cô/Cậu/Dì/Thím/Dượng → Anh/Chị/Em ruột + họ → Con + dâu/rể → Cháu. Khác biệt so với bản Bắc: Ba/Má (thay Bố/Mẹ), Cố (thay Cụ), ordinal bắt đầu từ Hai (bỏ Cả), chồng Cô gọi là Chú (thay Dượng). Nhân vật trung tâm: Nguyễn Minh An (p10)."
+  },
+  "branches": [],
+  "persons": [
+    {
+      "id": "p32",
+      "displayName": "Nguyễn Bá Thuần",
+      "gender": "male",
+      "isAlive": false,
+      "birthDate": { "year": 1840, "displayCalendar": "solar" },
+      "deathDate": { "year": 1912, "displayCalendar": "solar" },
+      "birthPlace": "Bình Dương",
+      "bio": "ÔNG SƠ (5 đời trên An, genDelta=5). An gọi là Ông Sơ (nam = nam bắc giống nhau).",
+      "createdAt": "2026-06-10T00:00:00.000Z",
+      "updatedAt": "2026-06-10T00:00:00.000Z"
+    },
+    {
+      "id": "p32w",
+      "displayName": "Vũ Thị Nhi",
+      "gender": "female",
+      "isAlive": false,
+      "birthDate": { "year": 1845, "displayCalendar": "solar" },
+      "deathDate": { "year": 1918, "displayCalendar": "solar" },
+      "bio": "BÀ SƠ (vợ Ông Sơ p32). An gọi là Bà Sơ.",
+      "createdAt": "2026-06-10T00:00:00.000Z",
+      "updatedAt": "2026-06-10T00:00:00.000Z"
+    },
+    {
+      "id": "p17",
+      "displayName": "Nguyễn Bá Hùng",
+      "gender": "male",
+      "isAlive": false,
+      "birthDate": { "year": 1870, "displayCalendar": "solar" },
+      "deathDate": { "year": 1945, "displayCalendar": "solar" },
+      "birthPlace": "Bình Dương",
+      "bio": "ÔNG KỴ (4 đời trên An, genDelta=4). An gọi là Ông Kỵ.",
+      "createdAt": "2026-06-10T00:00:00.000Z",
+      "updatedAt": "2026-06-10T00:00:00.000Z"
+    },
+    {
+      "id": "p17w",
+      "displayName": "Lê Thị Hạnh",
+      "gender": "female",
+      "isAlive": false,
+      "birthDate": { "year": 1875, "displayCalendar": "solar" },
+      "deathDate": { "year": 1948, "displayCalendar": "solar" },
+      "bio": "BÀ KỴ (vợ Ông Kỵ p17). An gọi là Bà Kỵ.",
+      "createdAt": "2026-06-10T00:00:00.000Z",
+      "updatedAt": "2026-06-10T00:00:00.000Z"
+    },
+    {
+      "id": "p18",
+      "displayName": "Nguyễn Văn Đức",
+      "gender": "male",
+      "isAlive": false,
+      "birthDate": { "year": 1898, "displayCalendar": "solar" },
+      "deathDate": { "year": 1975, "displayCalendar": "solar" },
+      "birthPlace": "Sài Gòn",
+      "bio": "CỐ NỘI (3 đời trên An, genDelta=3). An gọi là Cố (nam dùng 'Cố' thay 'Cụ'). Con trưởng Ông Kỵ p17.",
+      "createdAt": "2026-06-10T00:00:00.000Z",
+      "updatedAt": "2026-06-10T00:00:00.000Z"
+    },
+    {
+      "id": "p18w",
+      "displayName": "Trần Thị Thơm",
+      "gender": "female",
+      "isAlive": false,
+      "birthDate": { "year": 1901, "displayCalendar": "solar" },
+      "deathDate": { "year": 1980, "displayCalendar": "solar" },
+      "bio": "CỐ BÀ NỘI (vợ Cố nội p18). An gọi là Cố.",
+      "createdAt": "2026-06-10T00:00:00.000Z",
+      "updatedAt": "2026-06-10T00:00:00.000Z"
+    },
+    {
+      "id": "p20",
+      "displayName": "Trần Văn Phúc",
+      "gender": "male",
+      "isAlive": false,
+      "birthDate": { "year": 1900, "displayCalendar": "solar" },
+      "deathDate": { "year": 1968, "displayCalendar": "solar" },
+      "bio": "CỐ NGOẠI (3 đời trên An, isMaternal=true). An gọi là Cố. Ông ngoại của Má An.",
+      "createdAt": "2026-06-10T00:00:00.000Z",
+      "updatedAt": "2026-06-10T00:00:00.000Z"
+    },
+    {
+      "id": "p20w",
+      "displayName": "Ngô Thị Bông",
+      "gender": "female",
+      "isAlive": false,
+      "birthDate": { "year": 1904, "displayCalendar": "solar" },
+      "deathDate": { "year": 1972, "displayCalendar": "solar" },
+      "bio": "CỐ BÀ NGOẠI (vợ Cố ngoại p20). An gọi là Cố.",
+      "createdAt": "2026-06-10T00:00:00.000Z",
+      "updatedAt": "2026-06-10T00:00:00.000Z"
+    },
+    {
+      "id": "p01",
+      "displayName": "Nguyễn Văn Thịnh",
+      "gender": "male",
+      "isAlive": false,
+      "birthDate": { "year": 1928, "displayCalendar": "solar" },
+      "deathDate": { "year": 2005, "displayCalendar": "solar" },
+      "birthPlace": "Sài Gòn",
+      "bio": "ÔNG NỘI (2 đời trên An, genDelta=2). An gọi là Ông nội. Con Cố nội p18.",
+      "createdAt": "2026-06-10T00:00:00.000Z",
+      "updatedAt": "2026-06-10T00:00:00.000Z"
+    },
+    {
+      "id": "p01w",
+      "displayName": "Trần Thị Hoa",
+      "gender": "female",
+      "isAlive": false,
+      "birthDate": { "year": 1932, "displayCalendar": "solar" },
+      "deathDate": { "year": 2010, "displayCalendar": "solar" },
+      "bio": "BÀ NỘI (vợ Ông nội p01). An gọi là Bà nội.",
+      "createdAt": "2026-06-10T00:00:00.000Z",
+      "updatedAt": "2026-06-10T00:00:00.000Z"
+    },
+    {
+      "id": "p02",
+      "displayName": "Nguyễn Văn Toàn",
+      "gender": "male",
+      "isAlive": true,
+      "birthDate": { "year": 1953, "displayCalendar": "solar" },
+      "bio": "BÁC HAI (con trưởng Ông bà nội; nam dùng Hai thay Cả). An gọi là Bác Hai.",
+      "createdAt": "2026-06-10T00:00:00.000Z",
+      "updatedAt": "2026-06-10T00:00:00.000Z"
+    },
+    {
+      "id": "p02w",
+      "displayName": "Đinh Thị Lan",
+      "gender": "female",
+      "isAlive": true,
+      "birthDate": { "year": 1956, "displayCalendar": "solar" },
+      "bio": "Vợ Bác Hai p02. An gọi là Bác (gái).",
+      "createdAt": "2026-06-10T00:00:00.000Z",
+      "updatedAt": "2026-06-10T00:00:00.000Z"
+    },
+    {
+      "id": "p03",
+      "displayName": "Nguyễn Văn Dũng",
+      "gender": "male",
+      "isAlive": true,
+      "birthDate": { "year": 1958, "displayCalendar": "solar" },
+      "bio": "BA AN (con thứ ba của Ông bà nội; nam dùng 'Ba' thay 'Bố').",
+      "createdAt": "2026-06-10T00:00:00.000Z",
+      "updatedAt": "2026-06-10T00:00:00.000Z"
+    },
+    {
+      "id": "p04",
+      "displayName": "Nguyễn Văn Lợi",
+      "gender": "male",
+      "isAlive": true,
+      "birthDate": { "year": 1963, "displayCalendar": "solar" },
+      "bio": "CHÚ TƯ (con thứ tư Ông bà nội; nam ordinal=Tư, không có Cả). An gọi là Chú Tư.",
+      "createdAt": "2026-06-10T00:00:00.000Z",
+      "updatedAt": "2026-06-10T00:00:00.000Z"
+    },
+    {
+      "id": "p19",
+      "displayName": "Vũ Thị Hương",
+      "gender": "female",
+      "isAlive": true,
+      "birthDate": { "year": 1966, "displayCalendar": "solar" },
+      "bio": "THÍM TƯ (vợ Chú Tư p04). An gọi là Thím Tư. applyInLaw(Chú → Thím).",
+      "createdAt": "2026-06-10T00:00:00.000Z",
+      "updatedAt": "2026-06-10T00:00:00.000Z"
+    },
+    {
+      "id": "p05",
+      "displayName": "Nguyễn Thị Xuân",
+      "gender": "female",
+      "isAlive": true,
+      "birthDate": { "year": 1966, "displayCalendar": "solar" },
+      "bio": "CÔ ÚT (con út Ông bà nội). An gọi là Cô Út. CASE ĐẶC BIỆT: female personId của family f05.",
+      "createdAt": "2026-06-10T00:00:00.000Z",
+      "updatedAt": "2026-06-10T00:00:00.000Z"
+    },
+    {
+      "id": "p24",
+      "displayName": "Đặng Văn Bảo",
+      "gender": "male",
+      "isAlive": true,
+      "birthDate": { "year": 1964, "displayCalendar": "solar" },
+      "bio": "CHÚ (chồng Cô Út p05). An gọi là Chú (nam dùng Chú thay Dượng cho chồng Cô). applyInLaw(Cô → Chú[south]).",
+      "createdAt": "2026-06-10T00:00:00.000Z",
+      "updatedAt": "2026-06-10T00:00:00.000Z"
+    },
+    {
+      "id": "p06",
+      "displayName": "Trần Văn Bình",
+      "gender": "male",
+      "isAlive": false,
+      "birthDate": { "year": 1930, "displayCalendar": "solar" },
+      "deathDate": { "year": 2008, "displayCalendar": "solar" },
+      "bio": "ÔNG NGOẠI (genDelta=2, isMaternal=true). An gọi là Ông ngoại. Con Cố ngoại p20.",
+      "createdAt": "2026-06-10T00:00:00.000Z",
+      "updatedAt": "2026-06-10T00:00:00.000Z"
+    },
+    {
+      "id": "p06w",
+      "displayName": "Lê Thị Lan",
+      "gender": "female",
+      "isAlive": false,
+      "birthDate": { "year": 1934, "displayCalendar": "solar" },
+      "deathDate": { "year": 2015, "displayCalendar": "solar" },
+      "bio": "BÀ NGOẠI (vợ Ông ngoại p06). An gọi là Bà ngoại.",
+      "createdAt": "2026-06-10T00:00:00.000Z",
+      "updatedAt": "2026-06-10T00:00:00.000Z"
+    },
+    {
+      "id": "p07",
+      "displayName": "Trần Văn Tú",
+      "gender": "male",
+      "isAlive": true,
+      "birthDate": { "year": 1957, "displayCalendar": "solar" },
+      "bio": "CẬU HAI (anh trai Má An; nam ordinal=Hai). An gọi là Cậu Hai.",
+      "createdAt": "2026-06-10T00:00:00.000Z",
+      "updatedAt": "2026-06-10T00:00:00.000Z"
+    },
+    {
+      "id": "p07w",
+      "displayName": "Phạm Thị Yến",
+      "gender": "female",
+      "isAlive": true,
+      "birthDate": { "year": 1960, "displayCalendar": "solar" },
+      "bio": "MỢ HAI (vợ Cậu Hai p07). An gọi là Mợ Hai. applyInLaw(Cậu → Mợ).",
+      "createdAt": "2026-06-10T00:00:00.000Z",
+      "updatedAt": "2026-06-10T00:00:00.000Z"
+    },
+    {
+      "id": "p08",
+      "displayName": "Trần Thị Linh",
+      "gender": "female",
+      "isAlive": true,
+      "birthDate": { "year": 1960, "displayCalendar": "solar" },
+      "bio": "DÌ BA (chị gái thứ ba của Má An). An gọi là Dì Ba. CASE: female personId family f08.",
+      "createdAt": "2026-06-10T00:00:00.000Z",
+      "updatedAt": "2026-06-10T00:00:00.000Z"
+    },
+    {
+      "id": "p08h",
+      "displayName": "Lê Văn Khoa",
+      "gender": "male",
+      "isAlive": true,
+      "birthDate": { "year": 1958, "displayCalendar": "solar" },
+      "bio": "DƯỢNG BA (chồng Dì Ba p08). An gọi là Dượng Ba. applyInLaw(Dì → Dượng).",
+      "createdAt": "2026-06-10T00:00:00.000Z",
+      "updatedAt": "2026-06-10T00:00:00.000Z"
+    },
+    {
+      "id": "p09",
+      "displayName": "Trần Thị Ngọc",
+      "gender": "female",
+      "isAlive": true,
+      "birthDate": { "year": 1963, "displayCalendar": "solar" },
+      "bio": "MÁ AN (con út Ông bà ngoại; nam dùng 'Má' thay 'Mẹ').",
+      "createdAt": "2026-06-10T00:00:00.000Z",
+      "updatedAt": "2026-06-10T00:00:00.000Z"
+    },
+    {
+      "id": "p33",
+      "displayName": "Nguyễn Minh Hải",
+      "gender": "male",
+      "isAlive": true,
+      "birthDate": { "year": 1985, "displayCalendar": "solar" },
+      "bio": "ANH TRAI AN (anh ruột). An gọi là Anh. isSibling=true.",
+      "createdAt": "2026-06-10T00:00:00.000Z",
+      "updatedAt": "2026-06-10T00:00:00.000Z"
+    },
+    {
+      "id": "p33w",
+      "displayName": "Hoàng Thị Thu",
+      "gender": "female",
+      "isAlive": true,
+      "birthDate": { "year": 1986, "displayCalendar": "solar" },
+      "bio": "CHỊ DÂU (vợ Anh trai p33). An gọi là Chị dâu. applyInLaw(Anh → Chị dâu).",
+      "createdAt": "2026-06-10T00:00:00.000Z",
+      "updatedAt": "2026-06-10T00:00:00.000Z"
+    },
+    {
+      "id": "p10",
+      "displayName": "Nguyễn Minh An",
+      "gender": "male",
+      "isAlive": true,
+      "birthDate": { "year": 1988, "displayCalendar": "solar" },
+      "birthPlace": "TP.HCM",
+      "bio": "NHÂN VẬT TRUNG TÂM (miền Nam). Mở KinshipDrawer từ An để xem nhãn xưng hô theo phong cách Nam.",
+      "createdAt": "2026-06-10T00:00:00.000Z",
+      "updatedAt": "2026-06-10T00:00:00.000Z"
+    },
+    {
+      "id": "p10w",
+      "displayName": "Võ Thị Kim Chi",
+      "gender": "female",
+      "isAlive": true,
+      "birthDate": { "year": 1990, "displayCalendar": "solar" },
+      "bio": "VỢ AN / CON DÂU (nam). effectiveViewerId = An.",
+      "createdAt": "2026-06-10T00:00:00.000Z",
+      "updatedAt": "2026-06-10T00:00:00.000Z"
+    },
+    {
+      "id": "p12",
+      "displayName": "Nguyễn Thị Ngọc Anh",
+      "gender": "female",
+      "isAlive": true,
+      "birthDate": { "year": 1981, "displayCalendar": "solar" },
+      "bio": "CHỊ HỌ (con gái Bác Hai p02). An gọi là Chị họ.",
+      "createdAt": "2026-06-10T00:00:00.000Z",
+      "updatedAt": "2026-06-10T00:00:00.000Z"
+    },
+    {
+      "id": "p13",
+      "displayName": "Nguyễn Thành Nam",
+      "gender": "male",
+      "isAlive": true,
+      "birthDate": { "year": 1984, "displayCalendar": "solar" },
+      "bio": "ANH HỌ (con trai Bác Hai p02). An gọi là Anh họ.",
+      "createdAt": "2026-06-10T00:00:00.000Z",
+      "updatedAt": "2026-06-10T00:00:00.000Z"
+    },
+    {
+      "id": "p14",
+      "displayName": "Nguyễn Văn Quang",
+      "gender": "male",
+      "isAlive": true,
+      "birthDate": { "year": 1991, "displayCalendar": "solar" },
+      "bio": "EM HỌ HAI (con trai Chú Tư p04, thứ nhất; nam ordinal=Hai). An gọi là Em họ.",
+      "createdAt": "2026-06-10T00:00:00.000Z",
+      "updatedAt": "2026-06-10T00:00:00.000Z"
+    },
+    {
+      "id": "p25",
+      "displayName": "Nguyễn Văn Khải",
+      "gender": "male",
+      "isAlive": true,
+      "birthDate": { "year": 1994, "displayCalendar": "solar" },
+      "bio": "EM HỌ ÚT (con trai Chú Tư p04, thứ hai/út). An gọi là Em họ.",
+      "createdAt": "2026-06-10T00:00:00.000Z",
+      "updatedAt": "2026-06-10T00:00:00.000Z"
+    },
+    {
+      "id": "p26",
+      "displayName": "Đặng Thị Ngọc",
+      "gender": "female",
+      "isAlive": true,
+      "birthDate": { "year": 1993, "displayCalendar": "solar" },
+      "bio": "EM HỌ (con gái Cô Út p05/Chú p24). An gọi là Em họ. CASE BUG FIX female personId.",
+      "createdAt": "2026-06-10T00:00:00.000Z",
+      "updatedAt": "2026-06-10T00:00:00.000Z"
+    },
+    {
+      "id": "p15",
+      "displayName": "Trần Minh Khoa",
+      "gender": "male",
+      "isAlive": true,
+      "birthDate": { "year": 1985, "displayCalendar": "solar" },
+      "bio": "ANH HỌ (con trai Cậu Hai p07/Mợ p07w). An gọi là Anh họ (bên ngoại).",
+      "createdAt": "2026-06-10T00:00:00.000Z",
+      "updatedAt": "2026-06-10T00:00:00.000Z"
+    },
+    {
+      "id": "p16",
+      "displayName": "Lê Ngọc Mai",
+      "gender": "female",
+      "isAlive": true,
+      "birthDate": { "year": 1988, "displayCalendar": "solar" },
+      "bio": "CHỊ/EM HỌ (con gái Dì Ba p08). LCA = Ông bà ngoại qua p08 (female personId).",
+      "createdAt": "2026-06-10T00:00:00.000Z",
+      "updatedAt": "2026-06-10T00:00:00.000Z"
+    },
+    {
+      "id": "p11",
+      "displayName": "Nguyễn Gia Bảo",
+      "gender": "male",
+      "isAlive": true,
+      "birthDate": { "year": 2018, "displayCalendar": "solar" },
+      "bio": "CON TRAI AN (genDelta=-1). An gọi là Con; Bảo gọi An là Ba (miền Nam).",
+      "createdAt": "2026-06-10T00:00:00.000Z",
+      "updatedAt": "2026-06-10T00:00:00.000Z"
+    },
+    {
+      "id": "p27",
+      "displayName": "Lê Thị Hương",
+      "gender": "female",
+      "isAlive": true,
+      "birthDate": { "year": 1985, "displayCalendar": "solar" },
+      "bio": "CHỊ DÂU HỌ (vợ Anh họ p13). An gọi là Chị dâu họ.",
+      "createdAt": "2026-06-10T00:00:00.000Z",
+      "updatedAt": "2026-06-10T00:00:00.000Z"
+    },
+    {
+      "id": "p28",
+      "displayName": "Nguyễn Thành Vinh",
+      "gender": "male",
+      "isAlive": true,
+      "birthDate": { "year": 2004, "displayCalendar": "solar" },
+      "bio": "CHÁU (con trai Anh họ p13, genDelta=-1). An gọi là Cháu; Vinh gọi An là Bác.",
+      "createdAt": "2026-06-10T00:00:00.000Z",
+      "updatedAt": "2026-06-10T00:00:00.000Z"
+    },
+    {
+      "id": "p29",
+      "displayName": "Nguyễn Thị Quỳnh",
+      "gender": "female",
+      "isAlive": true,
+      "birthDate": { "year": 2007, "displayCalendar": "solar" },
+      "bio": "CHÁU (con gái Anh họ p13, genDelta=-1). An gọi là Cháu.",
+      "createdAt": "2026-06-10T00:00:00.000Z",
+      "updatedAt": "2026-06-10T00:00:00.000Z"
+    },
+    {
+      "id": "p30",
+      "displayName": "Nguyễn Gia Long",
+      "gender": "male",
+      "isAlive": true,
+      "birthDate": { "year": 2024, "displayCalendar": "solar" },
+      "bio": "CHÁU (con p28, genDelta=-2 từ An). An gọi là Cháu, selfLabel='Ông'.",
+      "createdAt": "2026-06-10T00:00:00.000Z",
+      "updatedAt": "2026-06-10T00:00:00.000Z"
+    }
+  ],
+  "families": [
+    {
+      "id": "fSr",
+      "personId": "p32",
+      "spouseId": "p32w",
+      "marriageStatus": "married",
+      "childIds": ["p17"],
+      "generation": 1
+    },
+    {
+      "id": "fKy",
+      "personId": "p17",
+      "spouseId": "p17w",
+      "marriageStatus": "married",
+      "childIds": ["p18"],
+      "generation": 2
+    },
+    {
+      "id": "fCu1",
+      "personId": "p18",
+      "spouseId": "p18w",
+      "marriageStatus": "married",
+      "childIds": ["p01"],
+      "generation": 3
+    },
+    {
+      "id": "fCu2",
+      "personId": "p20",
+      "spouseId": "p20w",
+      "marriageStatus": "married",
+      "childIds": ["p06"],
+      "generation": 3
+    },
+    {
+      "id": "f01",
+      "personId": "p01",
+      "spouseId": "p01w",
+      "marriageStatus": "widowed",
+      "childIds": ["p02", "p03", "p04", "p05"],
+      "generation": 4
+    },
+    {
+      "id": "f06m",
+      "personId": "p06",
+      "spouseId": "p06w",
+      "marriageStatus": "widowed",
+      "childIds": ["p07", "p08", "p09"],
+      "generation": 4
+    },
+    {
+      "id": "f02",
+      "personId": "p02",
+      "spouseId": "p02w",
+      "marriageStatus": "married",
+      "childIds": ["p12", "p13"],
+      "generation": 5
+    },
+    {
+      "id": "f03",
+      "personId": "p03",
+      "spouseId": "p09",
+      "marriageStatus": "married",
+      "childIds": ["p33", "p10"],
+      "generation": 5
+    },
+    {
+      "id": "f04",
+      "personId": "p04",
+      "spouseId": "p19",
+      "marriageStatus": "married",
+      "childIds": ["p14", "p25"],
+      "generation": 5
+    },
+    {
+      "id": "f05",
+      "personId": "p05",
+      "spouseId": "p24",
+      "marriageStatus": "married",
+      "childIds": ["p26"],
+      "generation": 5
+    },
+    {
+      "id": "f07",
+      "personId": "p07",
+      "spouseId": "p07w",
+      "marriageStatus": "married",
+      "childIds": ["p15"],
+      "generation": 5
+    },
+    {
+      "id": "f08",
+      "personId": "p08",
+      "spouseId": "p08h",
+      "marriageStatus": "married",
+      "childIds": ["p16"],
+      "generation": 5
+    },
+    {
+      "id": "f33",
+      "personId": "p33",
+      "spouseId": "p33w",
+      "marriageStatus": "married",
+      "childIds": [],
+      "generation": 6
+    },
+    {
+      "id": "f09",
+      "personId": "p10",
+      "spouseId": "p10w",
+      "marriageStatus": "married",
+      "childIds": ["p11"],
+      "generation": 6
+    },
+    {
+      "id": "f10",
+      "personId": "p12",
+      "marriageStatus": "single",
+      "childIds": [],
+      "generation": 6
+    },
+    {
+      "id": "f11",
+      "personId": "p13",
+      "spouseId": "p27",
+      "marriageStatus": "married",
+      "childIds": ["p28", "p29"],
+      "generation": 6
+    },
+    {
+      "id": "f12",
+      "personId": "p14",
+      "marriageStatus": "single",
+      "childIds": [],
+      "generation": 6
+    },
+    {
+      "id": "f25",
+      "personId": "p25",
+      "marriageStatus": "single",
+      "childIds": [],
+      "generation": 6
+    },
+    {
+      "id": "f26",
+      "personId": "p26",
+      "marriageStatus": "single",
+      "childIds": [],
+      "generation": 6
+    },
+    {
+      "id": "f13",
+      "personId": "p15",
+      "marriageStatus": "single",
+      "childIds": [],
+      "generation": 6
+    },
+    {
+      "id": "f14",
+      "personId": "p16",
+      "marriageStatus": "single",
+      "childIds": [],
+      "generation": 6
+    },
+    {
+      "id": "f15",
+      "personId": "p11",
+      "marriageStatus": "single",
+      "childIds": [],
+      "generation": 7
+    },
+    {
+      "id": "f28",
+      "personId": "p28",
+      "marriageStatus": "single",
+      "childIds": ["p30"],
+      "generation": 7
+    },
+    {
+      "id": "f29",
+      "personId": "p29",
+      "marriageStatus": "single",
+      "childIds": [],
+      "generation": 7
+    },
+    {
+      "id": "f30",
+      "personId": "p30",
+      "marriageStatus": "single",
+      "childIds": [],
+      "generation": 8
+    }
+  ]
+}
