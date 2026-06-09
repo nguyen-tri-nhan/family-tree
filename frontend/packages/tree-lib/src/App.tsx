@@ -25,12 +25,14 @@ export interface AppProps {
   headerPadding?:        string
   headerDrag?:           boolean
   onHeaderDoubleClick?:  (e: React.MouseEvent<HTMLElement>) => void
+  welcomeFooter?:        React.ReactNode
 }
 
 export function App({
   headerPadding       = '8px 20px',
   headerDrag          = false,
   onHeaderDoubleClick,
+  welcomeFooter,
 }: AppProps) {
   const storage = useStorage()
   const treeRef = useRef<SVGSVGElement>(null)
@@ -164,6 +166,11 @@ export function App({
                 {f.name} — {f.path.split('/').pop()}
               </div>
             ))}
+          </div>
+        )}
+        {welcomeFooter && (
+          <div style={{ marginTop: 8, ...noDragStyle }}>
+            {welcomeFooter}
           </div>
         )}
       </div>
