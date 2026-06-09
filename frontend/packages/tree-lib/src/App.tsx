@@ -14,6 +14,7 @@ type FormMode =
   | { type: 'add-root' }
   | { type: 'add-child';  parentFamilyId: string }
   | { type: 'add-spouse'; familyId: string }
+  | { type: 'add-parent'; childPersonId: string }
   | { type: 'edit';       personId: string }
 
 type CompareMode =
@@ -88,9 +89,13 @@ export function App({
     setTimeout(() => setSaved(false), 2000)
   }
 
-  function handleFormSubmit(updatedDoc: FtreeDocument) {
+  function handleFormSubmit(updatedDoc: FtreeDocument, newPersonId?: string) {
     setDoc(updatedDoc)
     setFormMode(null)
+    if (newPersonId) {
+      setSelected(newPersonId)
+      setHighlight(newPersonId)
+    }
   }
 
   function handleDelete(personId: string) {
@@ -228,6 +233,7 @@ export function App({
           onClose={() => setSelected(null)}
           onEdit={id => { setFormMode({ type: 'edit', personId: id }); setSelected(null) }}
           onDelete={handleDelete}
+          onAddParent={childPersonId  => { setFormMode({ type: 'add-parent', childPersonId }); setSelected(null) }}
           onAddChild={parentFamilyId => { setFormMode({ type: 'add-child', parentFamilyId }); setSelected(null) }}
           onAddSpouse={familyId      => { setFormMode({ type: 'add-spouse', familyId }); setSelected(null) }}
           onCompare={() => {

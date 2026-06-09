@@ -79,6 +79,34 @@ export function updatePerson(
   return touchUpdatedAt({ ...doc, persons })
 }
 
+// Thêm cha/mẹ cho một người: dịch tất cả generation lên 1, tạo FamilyUnit mới ở gen 1
+export function addParent(
+  doc: FtreeDocument,
+  childPersonId: string,
+  input: PersonInput,
+): { doc: FtreeDocument; person: Person } {
+  const shiftedDoc = {
+    ...doc,
+    families: doc.families.map(f => ({ ...f, generation: f.generation + 1 })),
+  }
+  const parent = newPerson(input)
+  const parentFamily: FamilyUnit = {
+    id: crypto.randomUUID(),
+    personId: parent.id,
+    marriageStatus: 'single',
+    childIds: [childPersonId],
+    generation: 1,
+  }
+  return {
+    person: parent,
+    doc: touchUpdatedAt({
+      ...shiftedDoc,
+      persons: [...shiftedDoc.persons, parent],
+      families: [...shiftedDoc.families, parentFamily],
+    }),
+  }
+}
+
 // Xoá một person:
 //   - Ném lỗi nếu họ có FamilyUnit với childIds (phải xoá con trước)
 //   - Xoá FamilyUnit của họ (personId = họ)

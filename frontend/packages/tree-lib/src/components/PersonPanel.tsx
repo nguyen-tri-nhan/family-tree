@@ -2,25 +2,27 @@ import type { FtreeDocument, Person, PartialDate } from '../types'
 import { buildIndex } from '../types'
 
 interface PersonPanelProps {
-  personId:    string
-  doc:         FtreeDocument
-  onClose:     () => void
-  onEdit:      (personId: string) => void
-  onDelete:    (personId: string) => void
-  onAddChild:  (parentFamilyId: string) => void
-  onAddSpouse: (familyId: string) => void
-  onCompare?:  () => void
+  personId:     string
+  doc:          FtreeDocument
+  onClose:      () => void
+  onEdit:       (personId: string) => void
+  onDelete:     (personId: string) => void
+  onAddChild:   (parentFamilyId: string) => void
+  onAddSpouse:  (familyId: string) => void
+  onAddParent?: (childPersonId: string) => void
+  onCompare?:   () => void
 }
 
 export function PersonPanel({
-  personId, doc, onClose, onEdit, onDelete, onAddChild, onAddSpouse, onCompare,
+  personId, doc, onClose, onEdit, onDelete, onAddChild, onAddSpouse, onAddParent, onCompare,
 }: PersonPanelProps) {
-  const { personMap, familyByPerson } = buildIndex(doc)
+  const { personMap, familyByPerson, childToParentFamily } = buildIndex(doc)
   const person = personMap.get(personId)
   if (!person) return null
 
-  const family    = familyByPerson.get(personId)
-  const hasSpouse = !!family?.spouseId
+  const family      = familyByPerson.get(personId)
+  const hasSpouse   = !!family?.spouseId
+  const hasParent   = childToParentFamily.has(personId)
 
   return (
     <div style={panel}>
@@ -127,6 +129,11 @@ export function PersonPanel({
 
       {/* Actions */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 16, paddingTop: 14, borderTop: '1px solid #e5e7eb' }}>
+        {onAddParent && !hasParent && (
+          <ActionBtn onClick={() => onAddParent(personId)} color="#059669">
+            ↑ Thêm cha / mẹ
+          </ActionBtn>
+        )}
         {family && (
           <div style={{ display: 'flex', gap: 6 }}>
             <ActionBtn onClick={() => onAddChild(family.id)} color="#1e1b4b">
