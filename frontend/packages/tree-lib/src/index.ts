@@ -1,6 +1,9 @@
 export { default as FamilyTree } from './FamilyTree'
 export type { FamilyTreeProps } from './FamilyTree'
 
+export { App } from './App'
+export type { AppProps } from './App'
+
 export { DateInput }      from './components/DateInput'
 export { PersonForm }     from './components/PersonForm'
 export { PersonPanel }    from './components/PersonPanel'

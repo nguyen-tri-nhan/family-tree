@@ -2,25 +2,27 @@ import type { FtreeDocument, Person, PartialDate } from '../types'
 import { buildIndex } from '../types'
 
 interface PersonPanelProps {
-  personId:    string
-  doc:         FtreeDocument
-  onClose:     () => void
-  onEdit:      (personId: string) => void
-  onDelete:    (personId: string) => void
-  onAddChild:  (parentFamilyId: string) => void
-  onAddSpouse: (familyId: string) => void
-  onCompare?:  () => void
+  personId:     string
+  doc:          FtreeDocument
+  onClose:      () => void
+  onEdit:       (personId: string) => void
+  onDelete:     (personId: string) => void
+  onAddChild:   (parentFamilyId: string) => void
+  onAddSpouse:  (familyId: string) => void
+  onAddParent?: (childPersonId: string) => void
+  onCompare?:   () => void
 }
 
 export function PersonPanel({
-  personId, doc, onClose, onEdit, onDelete, onAddChild, onAddSpouse, onCompare,
+  personId, doc, onClose, onEdit, onDelete, onAddChild, onAddSpouse, onAddParent, onCompare,
 }: PersonPanelProps) {
-  const { personMap, familyByPerson } = buildIndex(doc)
+  const { personMap, familyByPerson, childToParentFamily } = buildIndex(doc)
   const person = personMap.get(personId)
   if (!person) return null
 
-  const family    = familyByPerson.get(personId)
-  const hasSpouse = !!family?.spouseId
+  const family      = familyByPerson.get(personId)
+  const hasSpouse   = !!family?.spouseId
+  const hasParent   = childToParentFamily.has(personId)
 
   return (
     <div style={panel}>
@@ -29,7 +31,7 @@ export function PersonPanel({
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <PersonIcon gender={person.gender} size={36} />
           <div>
-            <div style={{ fontWeight: 800, fontSize: 15, color: '#1e1b4b' }}>{person.displayName}</div>
+            <div style={{ fontWeight: 800, fontSize: 15, color: 'var(--t-text)' }}>{person.displayName}</div>
             {person.titles?.map((t, i) => (
               <span key={i} style={{ fontSize: 11, color: '#7c3aed', fontWeight: 600 }}>{t.label} </span>
             ))}
@@ -53,7 +55,7 @@ export function PersonPanel({
           <Row label="Nơi mất">{person.deathPlace}</Row>
         )}
         {!person.birthDate && !person.deathDate && (
-          <span style={{ fontSize: 12, color: '#9ca3af' }}>Chưa có thông tin ngày tháng</span>
+          <span style={{ fontSize: 12, color: 'var(--t-text-4)' }}>Chưa có thông tin ngày tháng</span>
         )}
       </Section>
 
@@ -121,12 +123,17 @@ export function PersonPanel({
       {/* Bio */}
       {person.bio && (
         <Section title="Tiểu sử">
-          <p style={{ margin: 0, fontSize: 12, color: '#374151', lineHeight: 1.6 }}>{person.bio}</p>
+          <p style={{ margin: 0, fontSize: 12, color: 'var(--t-text-2)', lineHeight: 1.6 }}>{person.bio}</p>
         </Section>
       )}
 
       {/* Actions */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 16, paddingTop: 14, borderTop: '1px solid #e5e7eb' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 16, paddingTop: 14, borderTop: '1px solid var(--t-border)' }}>
+        {onAddParent && !hasParent && (
+          <ActionBtn onClick={() => onAddParent(personId)} color="#059669">
+            ↑ Thêm cha / mẹ
+          </ActionBtn>
+        )}
         {family && (
           <div style={{ display: 'flex', gap: 6 }}>
             <ActionBtn onClick={() => onAddChild(family.id)} color="#1e1b4b">
@@ -167,7 +174,6 @@ function formatDate(d: PartialDate): string {
     const leap = leapMonth ? '*' : ''
     const parts = [day, month ? `${month}${leap}` : undefined, year].filter(Boolean)
     const lunarStr = parts.join('/')
-    // Solar equivalent nếu đủ thông tin
     if (d.month && d.day) {
       return `${lunarStr} âm (${d.day}/${d.month}/${d.year})`
     }
@@ -183,7 +189,7 @@ function formatDate(d: PartialDate): string {
 
 function PersonIcon({ gender, size }: { gender: Person['gender']; size: number }) {
   const color = gender === 'female' ? '#be185d' : '#1d4ed8'
-  const bg    = gender === 'female' ? '#fdf2f8' : '#eff6ff'
+  const bg    = `var(${gender === 'female' ? '--t-female-bg' : '--t-male-bg'})`
   return (
     <div style={{
       width: size, height: size, borderRadius: '50%',
@@ -199,7 +205,7 @@ function PersonIcon({ gender, size }: { gender: Person['gender']; size: number }
 function Section({ title, children }: { title?: string; children: React.ReactNode }) {
   return (
     <div style={{ marginBottom: 12 }}>
-      {title && <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>{title}</div>}
+      {title && <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--t-text-4)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>{title}</div>}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>{children}</div>
     </div>
   )
@@ -208,8 +214,8 @@ function Section({ title, children }: { title?: string; children: React.ReactNod
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div style={{ display: 'flex', gap: 6, fontSize: 13 }}>
-      <span style={{ color: '#9ca3af', minWidth: 70, flexShrink: 0 }}>{label}</span>
-      <span style={{ color: '#1f2937', fontWeight: 500 }}>{children}</span>
+      <span style={{ color: 'var(--t-text-4)', minWidth: 70, flexShrink: 0 }}>{label}</span>
+      <span style={{ color: 'var(--t-text-2)', fontWeight: 500 }}>{children}</span>
     </div>
   )
 }
@@ -230,20 +236,20 @@ function ActionBtn({ onClick, color, children }: { onClick: () => void; color: s
 
 const panel: React.CSSProperties = {
   position: 'fixed', top: 0, right: 0, bottom: 0,
-  width: 280, background: '#fff',
+  width: 280, background: 'var(--t-card)',
   boxShadow: '-4px 0 20px rgba(0,0,0,0.12)',
   padding: 18, overflowY: 'auto', zIndex: 50,
 }
 
 const iconBtn: React.CSSProperties = {
   background: 'none', border: 'none', cursor: 'pointer',
-  fontSize: 14, color: '#9ca3af', padding: 2, flexShrink: 0,
+  fontSize: 14, color: 'var(--t-text-4)', padding: 2, flexShrink: 0,
 }
 
 const listItem: React.CSSProperties = {
-  fontSize: 13, color: '#1f2937', fontWeight: 500,
+  fontSize: 13, color: 'var(--t-text-2)', fontWeight: 500,
 }
 
 const subText: React.CSSProperties = {
-  fontSize: 11, color: '#6b7280', fontWeight: 400,
+  fontSize: 11, color: 'var(--t-text-3)', fontWeight: 400,
 }

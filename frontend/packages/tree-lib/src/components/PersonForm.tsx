@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { FtreeDocument, PartialDate } from '../types'
-import { addPerson, addFamilyUnit, setSpouse, updatePerson } from '../mutations'
+import { addPerson, addFamilyUnit, addParent, setSpouse, updatePerson } from '../mutations'
 import { touchUpdatedAt } from '../document'
 import { DateInput } from './DateInput'
 
@@ -8,12 +8,13 @@ type FormMode =
   | { type: 'add-root' }
   | { type: 'add-child';  parentFamilyId: string }
   | { type: 'add-spouse'; familyId: string }
+  | { type: 'add-parent'; childPersonId: string }
   | { type: 'edit';       personId: string }
 
 interface PersonFormProps {
   mode:     FormMode
   doc:      FtreeDocument
-  onSubmit: (doc: FtreeDocument) => void
+  onSubmit: (doc: FtreeDocument, newPersonId?: string) => void
   onClose:  () => void
 }
 
@@ -113,27 +114,37 @@ export function PersonForm({ mode, doc, onSubmit, onClose }: PersonFormProps) {
     }
 
     let updatedDoc = doc
+    let newPersonId: string | undefined
+
     if (mode.type === 'add-root') {
       const { doc: d1, person } = addPerson(updatedDoc, personInput)
-      updatedDoc = addFamilyUnit(d1, person.id, 1)
+      updatedDoc  = addFamilyUnit(d1, person.id, 1)
+      newPersonId = person.id
     } else if (mode.type === 'edit') {
       updatedDoc = updatePerson(updatedDoc, mode.personId, personInput)
     } else if (mode.type === 'add-child') {
       const parentFamily = doc.families.find(f => f.id === mode.parentFamilyId)
       const gen          = (parentFamily?.generation ?? 1) + 1
       const { doc: d1, person } = addPerson(updatedDoc, personInput, mode.parentFamilyId)
-      updatedDoc = addFamilyUnit(d1, person.id, gen)
+      updatedDoc  = addFamilyUnit(d1, person.id, gen)
+      newPersonId = person.id
     } else if (mode.type === 'add-spouse') {
-      const { doc: d1 } = setSpouse(updatedDoc, mode.familyId, personInput)
-      updatedDoc = d1
+      const { doc: d1, person } = setSpouse(updatedDoc, mode.familyId, personInput)
+      updatedDoc  = d1
+      newPersonId = person.id
+    } else if (mode.type === 'add-parent') {
+      const { doc: d1, person } = addParent(updatedDoc, mode.childPersonId, personInput)
+      updatedDoc  = d1
+      newPersonId = person.id
     }
 
-    onSubmit(touchUpdatedAt(updatedDoc))
+    onSubmit(touchUpdatedAt(updatedDoc), newPersonId)
   }
 
-  const title = mode.type === 'add-root'   ? 'Thêm người đầu tiên'
-    : mode.type === 'edit'       ? 'Sửa thông tin'
-    : mode.type === 'add-child'  ? 'Thêm con'
+  const title = mode.type === 'add-root'    ? 'Thêm người đầu tiên'
+    : mode.type === 'edit'        ? 'Sửa thông tin'
+    : mode.type === 'add-child'   ? 'Thêm con'
+    : mode.type === 'add-parent'  ? 'Thêm cha / mẹ'
     : 'Thêm vợ / chồng'
 
   return (
@@ -141,12 +152,12 @@ export function PersonForm({ mode, doc, onSubmit, onClose }: PersonFormProps) {
       <div style={modal} onClick={e => e.stopPropagation()}>
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-          <h2 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: '#1e1b4b' }}>{title}</h2>
+          <h2 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: 'var(--t-text)' }}>{title}</h2>
           <button onClick={onClose} style={closeBtn}>✕</button>
         </div>
 
         {/* Tabs */}
-        <div style={{ display: 'flex', borderBottom: '1px solid #e5e7eb', marginBottom: 18, gap: 0 }}>
+        <div style={{ display: 'flex', borderBottom: '1px solid var(--t-border)', marginBottom: 18, gap: 0 }}>
           {(['basic', 'names', 'dates'] as Tab[]).map(t => (
             <button key={t} onClick={() => setTab(t)} style={tabBtn(t === tab)}>
               {tabLabel(t)}
@@ -238,10 +249,11 @@ export function PersonForm({ mode, doc, onSubmit, onClose }: PersonFormProps) {
         {/* Error */}
         {error && (
           <p style={{ margin: '8px 0 0', fontSize: 12, color: '#dc2626' }}>{error}</p>
+
         )}
 
         {/* Footer */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 20, paddingTop: 16, borderTop: '1px solid #e5e7eb' }}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 20, paddingTop: 16, borderTop: '1px solid var(--t-border)' }}>
           <button onClick={onClose}  style={btn(false)}>Huỷ</button>
           <button onClick={handleSubmit} style={btn(true)}>Lưu</button>
         </div>
@@ -255,7 +267,7 @@ export function PersonForm({ mode, doc, onSubmit, onClose }: PersonFormProps) {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      <label style={{ fontSize: 12, fontWeight: 600, color: '#374151' }}>{label}</label>
+      <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--t-text-2)' }}>{label}</label>
       {children}
     </div>
   )
@@ -270,7 +282,7 @@ const overlay: React.CSSProperties = {
 }
 
 const modal: React.CSSProperties = {
-  background: '#fff', borderRadius: 12, padding: 24,
+  background: 'var(--t-card)', borderRadius: 12, padding: 24,
   width: 420, maxHeight: '90vh', overflowY: 'auto',
   boxShadow: '0 20px 60px rgba(0,0,0,0.25)',
 }
@@ -281,26 +293,27 @@ const section: React.CSSProperties = {
 
 const textInput: React.CSSProperties = {
   padding: '7px 10px', fontSize: 13, borderRadius: 7,
-  border: '1px solid #d1d5db', outline: 'none', width: '100%',
+  border: '1px solid var(--t-border-2)', outline: 'none', width: '100%',
+  background: 'var(--t-bg)', color: 'var(--t-text)',
   boxSizing: 'border-box',
 }
 
 const radioLabel: React.CSSProperties = {
   display: 'flex', alignItems: 'center', gap: 5,
-  fontSize: 13, cursor: 'pointer',
+  fontSize: 13, cursor: 'pointer', color: 'var(--t-text-2)',
 }
 
 const closeBtn: React.CSSProperties = {
   background: 'none', border: 'none', fontSize: 16,
-  cursor: 'pointer', color: '#6b7280', padding: 4,
+  cursor: 'pointer', color: 'var(--t-text-4)', padding: 4,
 }
 
 function tabBtn(active: boolean): React.CSSProperties {
   return {
     background: 'none', border: 'none', cursor: 'pointer',
     padding: '6px 14px', fontSize: 13, fontWeight: active ? 700 : 400,
-    color: active ? '#1e1b4b' : '#6b7280',
-    borderBottom: active ? '2px solid #1e1b4b' : '2px solid transparent',
+    color: active ? 'var(--t-text)' : 'var(--t-text-3)',
+    borderBottom: active ? '2px solid var(--t-brand)' : '2px solid transparent',
     marginBottom: -1,
   }
 }
@@ -309,7 +322,7 @@ function btn(primary: boolean): React.CSSProperties {
   return {
     padding: '7px 20px', borderRadius: 8, border: 'none',
     fontSize: 13, fontWeight: 700, cursor: 'pointer',
-    background: primary ? '#1e1b4b' : '#f3f4f6',
-    color:      primary ? '#fff'    : '#374151',
+    background: primary ? 'var(--t-brand)'   : 'var(--t-btn2-bg)',
+    color:      primary ? 'var(--t-brand-fg)' : 'var(--t-btn2-fg)',
   }
 }
