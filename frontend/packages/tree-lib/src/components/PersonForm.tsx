@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { FtreeDocument, PartialDate } from '../types'
-import { addPerson, addFamilyUnit, setSpouse, updatePerson } from '../mutations'
+import { addPerson, addFamilyUnit, addParent, setSpouse, updatePerson } from '../mutations'
 import { touchUpdatedAt } from '../document'
 import { DateInput } from './DateInput'
 
@@ -8,12 +8,13 @@ type FormMode =
   | { type: 'add-root' }
   | { type: 'add-child';  parentFamilyId: string }
   | { type: 'add-spouse'; familyId: string }
+  | { type: 'add-parent'; childPersonId: string }
   | { type: 'edit';       personId: string }
 
 interface PersonFormProps {
   mode:     FormMode
   doc:      FtreeDocument
-  onSubmit: (doc: FtreeDocument) => void
+  onSubmit: (doc: FtreeDocument, newPersonId?: string) => void
   onClose:  () => void
 }
 
@@ -113,27 +114,37 @@ export function PersonForm({ mode, doc, onSubmit, onClose }: PersonFormProps) {
     }
 
     let updatedDoc = doc
+    let newPersonId: string | undefined
+
     if (mode.type === 'add-root') {
       const { doc: d1, person } = addPerson(updatedDoc, personInput)
-      updatedDoc = addFamilyUnit(d1, person.id, 1)
+      updatedDoc  = addFamilyUnit(d1, person.id, 1)
+      newPersonId = person.id
     } else if (mode.type === 'edit') {
       updatedDoc = updatePerson(updatedDoc, mode.personId, personInput)
     } else if (mode.type === 'add-child') {
       const parentFamily = doc.families.find(f => f.id === mode.parentFamilyId)
       const gen          = (parentFamily?.generation ?? 1) + 1
       const { doc: d1, person } = addPerson(updatedDoc, personInput, mode.parentFamilyId)
-      updatedDoc = addFamilyUnit(d1, person.id, gen)
+      updatedDoc  = addFamilyUnit(d1, person.id, gen)
+      newPersonId = person.id
     } else if (mode.type === 'add-spouse') {
-      const { doc: d1 } = setSpouse(updatedDoc, mode.familyId, personInput)
-      updatedDoc = d1
+      const { doc: d1, person } = setSpouse(updatedDoc, mode.familyId, personInput)
+      updatedDoc  = d1
+      newPersonId = person.id
+    } else if (mode.type === 'add-parent') {
+      const { doc: d1, person } = addParent(updatedDoc, mode.childPersonId, personInput)
+      updatedDoc  = d1
+      newPersonId = person.id
     }
 
-    onSubmit(touchUpdatedAt(updatedDoc))
+    onSubmit(touchUpdatedAt(updatedDoc), newPersonId)
   }
 
-  const title = mode.type === 'add-root'   ? 'Thêm người đầu tiên'
-    : mode.type === 'edit'       ? 'Sửa thông tin'
-    : mode.type === 'add-child'  ? 'Thêm con'
+  const title = mode.type === 'add-root'    ? 'Thêm người đầu tiên'
+    : mode.type === 'edit'        ? 'Sửa thông tin'
+    : mode.type === 'add-child'   ? 'Thêm con'
+    : mode.type === 'add-parent'  ? 'Thêm cha / mẹ'
     : 'Thêm vợ / chồng'
 
   return (

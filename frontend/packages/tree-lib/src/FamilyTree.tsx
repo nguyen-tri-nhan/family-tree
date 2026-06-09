@@ -196,6 +196,8 @@ const FamilyTree = forwardRef<SVGSVGElement, FamilyTreeProps>(function FamilyTre
     const el = svgRef.current
     if (!el) return
 
+    const prevTransform = d3.zoomTransform(el)
+
     const svg = d3.select(el)
     svg.selectAll('*').remove()
 
@@ -241,6 +243,7 @@ const FamilyTree = forwardRef<SVGSVGElement, FamilyTreeProps>(function FamilyTre
       .on('zoom', e => g.attr('transform', e.transform))
     zoomRef.current = zoom
     svg.call(zoom)
+    svg.call(zoom.transform, prevTransform)
 
     // Layer order: highlights → links → nodes
     const hlG      = g.append('g').attr('class', 'hl') as D3G
@@ -361,7 +364,8 @@ const FamilyTree = forwardRef<SVGSVGElement, FamilyTreeProps>(function FamilyTre
     const el = svgRef.current
     const w  = el.clientWidth  || 800
     const h  = el.clientHeight || 600
-    const t  = d3.zoomIdentity.translate(w / 2 - pos.x, h / 2 - pos.y)
+    const k  = d3.zoomTransform(el).k
+    const t  = d3.zoomIdentity.scale(k).translate(w / (2 * k) - pos.x, h / (2 * k) - pos.y)
     d3.select(el).transition().duration(500).call(zoomRef.current.transform, t)
   }, [highlightPersonId])
 
