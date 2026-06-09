@@ -30,6 +30,7 @@ export interface AppProps {
   headerDrag?:           boolean
   onHeaderDoubleClick?:  (e: React.MouseEvent<HTMLElement>) => void
   welcomeFooter?:        React.ReactNode
+  onAbout?:              () => void
 }
 
 export function App({
@@ -37,6 +38,7 @@ export function App({
   headerDrag          = false,
   onHeaderDoubleClick,
   welcomeFooter,
+  onAbout,
 }: AppProps) {
   const storage = useStorage()
   const treeRef = useRef<SVGSVGElement>(null)
@@ -243,6 +245,9 @@ export function App({
             </button>
           )}
           <button onClick={toggleTheme}                 style={btn(false)} title={theme === 'dark' ? 'Chuyển sang sáng' : 'Chuyển sang tối'}>{theme === 'dark' ? '☀' : '🌙'}</button>
+          {onAbout && (
+            <button onClick={onAbout} style={btn(false)} title="Về ứng dụng">ⓘ</button>
+          )}
         </div>
       </header>
 

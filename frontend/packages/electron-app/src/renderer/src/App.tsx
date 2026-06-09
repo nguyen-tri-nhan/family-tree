@@ -1,8 +1,8 @@
-import { App } from '@family-tree/tree-lib'
+import { AppRouter } from '@family-tree/tree-lib'
 
 export default function ElectronApp() {
   return (
-    <App
+    <AppRouter
       headerPadding="8px 20px 8px 90px"
       headerDrag
       onHeaderDoubleClick={e => {
