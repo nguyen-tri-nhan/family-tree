@@ -3,6 +3,8 @@ import type { FtreeDocument, PartialDate } from '../types'
 import { addPerson, addFamilyUnit, addParent, setSpouse, updatePerson } from '../mutations'
 import { touchUpdatedAt } from '../document'
 import { DateInput } from './DateInput'
+import { validateDocument } from '../utils/validateTree'
+import type { ValidationIssue } from '../utils/validateTree'
 
 type FormMode =
   | { type: 'add-root' }
@@ -72,7 +74,9 @@ export function PersonForm({ mode, doc, onSubmit, onClose }: PersonFormProps) {
     }
     return EMPTY
   })
-  const [error, setError] = useState('')
+  const [error,       setError]       = useState('')
+  const [formWarnings, setFormWarnings] = useState<ValidationIssue[]>([])
+  const [pendingDoc,   setPendingDoc]   = useState<{ doc: FtreeDocument; id?: string } | null>(null)
 
   function set<K extends keyof FormState>(k: K, v: FormState[K]) {
     setForm(prev => ({ ...prev, [k]: v }))
@@ -88,6 +92,12 @@ export function PersonForm({ mode, doc, onSubmit, onClose }: PersonFormProps) {
   }
 
   function handleSubmit() {
+    // User already saw warnings and confirmed
+    if (pendingDoc) {
+      onSubmit(pendingDoc.doc, pendingDoc.id)
+      return
+    }
+
     const err = validate()
     if (err) { setError(err); return }
 
@@ -138,7 +148,21 @@ export function PersonForm({ mode, doc, onSubmit, onClose }: PersonFormProps) {
       newPersonId = person.id
     }
 
-    onSubmit(touchUpdatedAt(updatedDoc), newPersonId)
+    const finalDoc = touchUpdatedAt(updatedDoc)
+
+    // Cross-relation validation
+    const targetId = mode.type === 'edit' ? mode.personId : newPersonId
+    const issues   = targetId
+      ? validateDocument(finalDoc).filter(i => i.personIds.includes(targetId))
+      : []
+
+    if (issues.length > 0) {
+      setFormWarnings(issues)
+      setPendingDoc({ doc: finalDoc, id: newPersonId })
+      return
+    }
+
+    onSubmit(finalDoc, newPersonId)
   }
 
   const title = mode.type === 'add-root'    ? 'Thêm người đầu tiên'
@@ -249,13 +273,45 @@ export function PersonForm({ mode, doc, onSubmit, onClose }: PersonFormProps) {
         {/* Error */}
         {error && (
           <p style={{ margin: '8px 0 0', fontSize: 12, color: '#dc2626' }}>{error}</p>
+        )}
 
+        {/* Validation warnings */}
+        {formWarnings.length > 0 && (
+          <div style={{
+            marginTop: 12, padding: '10px 12px', borderRadius: 8,
+            background: '#fffbeb', border: '1px solid #fcd34d',
+          }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#92400e', marginBottom: 6 }}>
+              Cảnh báo dữ liệu:
+            </div>
+            {formWarnings.map(w => (
+              <div key={w.id} style={{ fontSize: 12, color: '#78350f', marginBottom: 3, lineHeight: 1.4 }}>
+                {w.severity === 'error' ? '■ ' : '▲ '}{w.message}
+              </div>
+            ))}
+          </div>
         )}
 
         {/* Footer */}
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 20, paddingTop: 16, borderTop: '1px solid var(--t-border)' }}>
-          <button onClick={onClose}  style={btn(false)}>Huỷ</button>
-          <button onClick={handleSubmit} style={btn(true)}>Lưu</button>
+          {formWarnings.length > 0 ? (
+            <>
+              <button
+                onClick={() => { setFormWarnings([]); setPendingDoc(null) }}
+                style={btn(false)}
+              >
+                Quay lại sửa
+              </button>
+              <button onClick={handleSubmit} style={{ ...btn(true), background: '#d97706', color: '#fff' }}>
+                Lưu dù vậy
+              </button>
+            </>
+          ) : (
+            <>
+              <button onClick={onClose}      style={btn(false)}>Huỷ</button>
+              <button onClick={handleSubmit} style={btn(true)}>Lưu</button>
+            </>
+          )}
         </div>
       </div>
     </div>

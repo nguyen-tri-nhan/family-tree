@@ -9,6 +9,7 @@ export interface KinshipResult {
   ordinal?:  string    // "Hai", "Ba", "Cả", "Út", v.v.
   genDelta:  number    // + = target ở thế hệ cao hơn viewer
   path:      string[]  // chuỗi personId từ viewer → target qua LCA
+  lcaIndex:  number    // index trong path[] của LCA (path[lcaIndex] = LCA)
 }
 
 // ── Ordinal ───────────────────────────────────────────────────────
@@ -22,24 +23,58 @@ export function getSiblingOrdinal(index: number, isYoungest: boolean, region: Re
   return arr[index] ?? (region === 'south' ? String(index + 2) : String(index + 1))
 }
 
-// ── Internal helpers ─────────────────────────────────────────────
+// ── Ancestor BFS ──────────────────────────────────────────────────
+
+interface AncestorEntry {
+  depth:      number   // steps from start to this ancestor
+  parentId:   string   // ID of the node (closer to start) that discovered this one
+  viaMother:  boolean  // first step from start was via spouseId (viewer's mother)
+}
+
+// BFS upward through both father (personId) and mother (spouseId) at each step.
+// viaMother = true only when the FIRST step from startId went through spouseId.
+// Subsequent steps inherit the viaMother value of their discoverer.
+function buildAncestorSet(startId: string, idx: FtreeIndex): Map<string, AncestorEntry> {
+  const map = new Map<string, AncestorEntry>()
+  map.set(startId, { depth: 0, parentId: '', viaMother: false })
+  const queue: Array<{ id: string; depth: number; viaMother: boolean }> = [
+    { id: startId, depth: 0, viaMother: false },
+  ]
+  while (queue.length > 0) {
+    const { id, depth, viaMother } = queue.shift()!
+    const pf = idx.childToParentFamily.get(id)
+    if (!pf) continue
+    if (pf.personId && !map.has(pf.personId)) {
+      map.set(pf.personId, { depth: depth + 1, parentId: id, viaMother })
+      queue.push({ id: pf.personId, depth: depth + 1, viaMother })
+    }
+    if (pf.spouseId && !map.has(pf.spouseId)) {
+      // Only flip viaMother at depth=0 (the very first maternal step from start).
+      const next = depth === 0 ? true : viaMother
+      map.set(pf.spouseId, { depth: depth + 1, parentId: id, viaMother: next })
+      queue.push({ id: pf.spouseId, depth: depth + 1, viaMother: next })
+    }
+  }
+  return map
+}
+
+// Reconstruct path [start, …, lca] by following parentId pointers from lca back to start.
+function tracePath(lcaId: string, ancestorSet: Map<string, AncestorEntry>): string[] {
+  const path: string[] = []
+  let cur = lcaId
+  for (;;) {
+    path.push(cur)
+    const e = ancestorSet.get(cur)
+    if (!e || e.depth === 0) break
+    cur = e.parentId
+  }
+  return path.reverse()  // [start, …, lca]
+}
+
+// ── Label builder ──────────────────────────────────────────────────
 
 function g(gender: Person['gender'], m: string, f: string): string {
   return gender === 'female' ? f : m
-}
-
-function getAncestorChain(startId: string, idx: FtreeIndex): string[] {
-  const chain = [startId]
-  let cur = startId
-  const visited = new Set<string>([startId])
-  for (;;) {
-    const pf = idx.childToParentFamily.get(cur)
-    if (!pf || visited.has(pf.personId)) break
-    cur = pf.personId
-    visited.add(cur)
-    chain.push(cur)
-  }
-  return chain
 }
 
 // branchRank > 0: viewer's branch is junior → target is senior (Bác/Anh/Chị)
@@ -53,15 +88,20 @@ function buildLabel(
   vg: Person['gender'],
   ordinal:    string | undefined,
   region:     Region,
+  isMaternal: boolean,
 ): { label: string; selfLabel: string; ordinal?: string } {
-  const showOrd = genDelta === 1 || isSibling
+  const showOrd = genDelta === 1 || isSibling || (genDelta === 2 && branchRank !== 0)
   const N = showOrd && ordinal ? ` ${ordinal}` : ''
 
   // ── Ascending ────────────────────────────────────────────────
   if (genDelta >= 5) return { label: g(tg, `Ông Sơ${N}`, `Bà Sơ${N}`),   selfLabel: 'Cháu', ordinal }
   if (genDelta === 4) return { label: g(tg, `Ông Kỵ${N}`, `Bà Kỵ${N}`),   selfLabel: 'Cháu', ordinal }
   if (genDelta === 3) return { label: (region === 'south' ? 'Cố' : 'Cụ') + N, selfLabel: 'Cháu chắt', ordinal }
-  if (genDelta === 2) return { label: g(tg, `Ông${N}`, `Bà${N}`),          selfLabel: 'Cháu', ordinal }
+
+  if (genDelta === 2) {
+    const side = isMaternal ? 'ngoại' : 'nội'
+    return { label: g(tg, `Ông ${side}${N}`, `Bà ${side}${N}`), selfLabel: 'Cháu', ordinal }
+  }
 
   if (genDelta === 1) {
     if (branchRank === 0) {
@@ -69,6 +109,10 @@ function buildLabel(
         label:     g(tg, region === 'south' ? 'Ba' : 'Bố', region === 'south' ? 'Má' : 'Mẹ'),
         selfLabel: 'Con',
       }
+    }
+    if (isMaternal) {
+      // Anh/em của mẹ → Cậu (male) / Dì (female)
+      return { label: g(tg, `Cậu${N}`, `Dì${N}`), selfLabel: 'Cháu', ordinal }
     }
     if (branchRank > 0) return { label: g(tg, `Bác${N}`, `Bác${N}`), selfLabel: 'Cháu', ordinal }
     return { label: g(tg, `Chú${N}`, `Cô${N}`),                              selfLabel: 'Cháu', ordinal }
@@ -122,13 +166,17 @@ function applyInLaw(
 ): string {
   const sp   = bloodLabel.indexOf(' ')
   const base = sp > 0 ? bloodLabel.slice(0, sp) : bloodLabel
-  const rest = sp > 0 ? bloodLabel.slice(sp)    : ''  // already has ordinal for ascending cases
+  const rest = sp > 0 ? bloodLabel.slice(sp)    : ''  // already has ordinal/side suffix
 
   let nb: string
   if (targetGender === 'female') {
     nb = ({
+      // Direct (vợ của cha/mẹ)
+      Bố: 'Mẹ', Ba: 'Má',
       // Ascending (vợ của...)
-      Chú: 'Thím', Bác: 'Bác', Ông: 'Bà', Cậu: 'Mợ', Anh: 'Chị',
+      Chú: 'Thím', Bác: 'Bác', Ông: 'Bà', Cụ: 'Cụ', Cậu: 'Mợ',
+      // Same-gen in-law: vợ của anh = chị dâu (not chị)
+      Anh: 'Chị dâu',
       // Descending (dâu)
       Con: 'Con dâu', Cháu: 'Cháu dâu', Chắt: 'Chắt dâu',
       Chút: 'Chút dâu', Chít: 'Chít dâu',
@@ -136,8 +184,12 @@ function applyInLaw(
   } else {
     const chu = region === 'south' ? 'Chú' : 'Dượng'
     nb = ({
+      // Direct (chồng của mẹ)
+      Mẹ: region === 'south' ? 'Ba' : 'Bố', Má: 'Ba',
       // Ascending (chồng của...)
-      Cô: chu, Bác: 'Bác', Dì: 'Dượng', Chị: 'Anh', Bà: 'Ông',
+      Cô: chu, Bác: 'Bác', Dì: 'Dượng', Bà: 'Ông', Cụ: 'Cụ',
+      // Same-gen in-law: chồng của chị = anh rể (not anh)
+      Chị: 'Anh rể',
       // Descending (rể)
       Con: 'Con rể', Cháu: 'Cháu rể', Chắt: 'Chắt rể',
       Chút: 'Chút rể', Chít: 'Chít rể',
@@ -172,8 +224,13 @@ export function computeKinship(
       selfLabel: g(viewer.gender, 'Chồng', 'Vợ'),
       genDelta:  0,
       path:      [viewerId, targetId],
+      lcaIndex:  0,
     }
   }
+
+  // If viewer is an in-law (spouseId in some family), use blood spouse as effective viewer.
+  const viewerInLawFamily = idx.familyBySpouse.get(viewerId)
+  const effectiveViewerId = viewerInLawFamily?.personId ?? viewerId
 
   // In-law: target appears as spouseId → resolve through blood spouse
   const inLawFamily   = idx.familyBySpouse.get(targetId)
@@ -181,39 +238,48 @@ export function computeKinship(
   const bloodTarget   = idx.personMap.get(bloodTargetId) ?? target
   const isInLaw       = !!inLawFamily
 
-  // Ancestor chains
-  const vChain = getAncestorChain(viewerId,      idx)
-  const tChain = getAncestorChain(bloodTargetId, idx)
+  // BFS ancestor sets for both sides (follow father + mother at each step)
+  const vSet = buildAncestorSet(effectiveViewerId, idx)
+  const tSet = buildAncestorSet(bloodTargetId, idx)
 
-  // Lowest common ancestor (LCA)
-  const vSet = new Map(vChain.map((id, i) => [id, i]))
+  // Find LCA: lowest combined depth
   let lcaId: string | null = null
-  let tDepth = 0
-  for (let i = 0; i < tChain.length; i++) {
-    if (vSet.has(tChain[i])) { lcaId = tChain[i]; tDepth = i; break }
+  let vDepth = 0, tDepth = 0
+  let minCost = Infinity
+  for (const [id, tEntry] of tSet) {
+    const vEntry = vSet.get(id)
+    if (!vEntry) continue
+    const cost = vEntry.depth + tEntry.depth
+    if (cost < minCost) {
+      minCost = cost; lcaId = id
+      vDepth = vEntry.depth; tDepth = tEntry.depth
+    }
   }
   if (!lcaId) return null
 
-  const vDepth   = vSet.get(lcaId)!
-  const genDelta = vDepth - tDepth  // + = target is an older generation
+  const genDelta  = vDepth - tDepth  // + = target is an older generation
+  const isMaternal = vSet.get(lcaId)!.viaMother
 
-  // branchRank at LCA: compare position in LCA's childIds
+  // Reconstruct paths: [effectiveViewer, …, lca] and [bloodTarget, …, lca]
+  const vPath = tracePath(lcaId, vSet)  // length = vDepth + 1
+  const tPath = tracePath(lcaId, tSet)  // length = tDepth + 1
+
+  // branchRank: compare sibling positions at LCA
   let branchRank = 0
   if (vDepth > 0 && tDepth > 0) {
-    const vChild  = vChain[vDepth - 1]  // viewer's ancestor just below LCA
-    const tChild  = tChain[tDepth - 1]  // target's ancestor just below LCA
-    const lcaUnit = idx.familyByPerson.get(lcaId)
+    const vChild  = vPath[vDepth - 1]  // viewer's ancestor just below LCA
+    const tChild  = tPath[tDepth - 1]  // target's ancestor just below LCA
+    const lcaUnit = idx.familyByPerson.get(lcaId) ?? idx.familyBySpouse.get(lcaId)
     if (lcaUnit) {
       const vi = lcaUnit.childIds.indexOf(vChild)
       const ti = lcaUnit.childIds.indexOf(tChild)
-      // vi > ti → viewer's branch is junior (later-born) → target is senior → Bác/Anh/Chị
       if (vi !== -1 && ti !== -1) branchRank = vi - ti
     }
   }
 
   // Detect actual siblings (same parent FamilyUnit)
-  const vPF      = idx.childToParentFamily.get(viewerId)
-  const tPF      = idx.childToParentFamily.get(bloodTargetId)
+  const vPF       = idx.childToParentFamily.get(effectiveViewerId)
+  const tPF       = idx.childToParentFamily.get(bloodTargetId)
   const isSibling = !!vPF && !!tPF && vPF.id === tPF.id
 
   // Ordinal: target's position among their siblings
@@ -223,18 +289,21 @@ export function computeKinship(
     if (ti !== -1) ordinal = getSiblingOrdinal(ti, ti === tPF.childIds.length - 1, region)
   }
 
+  // viewer.gender (not effectiveViewer) is used for selfLabel — dâu/rể xưng theo giới tính thật
   const { label: raw, selfLabel, ordinal: ord } = buildLabel(
-    genDelta, branchRank, isSibling, bloodTarget.gender, viewer.gender, ordinal, region,
+    genDelta, branchRank, isSibling, bloodTarget.gender, viewer.gender, ordinal, region, isMaternal,
   )
 
   const finalLabel = isInLaw ? applyInLaw(raw, target.gender, region, ordinal) : raw
 
-  // Path: viewer → LCA → target
-  const path = [
-    ...vChain.slice(0, vDepth + 1),
-    ...tChain.slice(0, tDepth).reverse(),
-  ]
-  if (isInLaw && path.length > 0) path[path.length - 1] = targetId
+  // Path: viewer → LCA → target.
+  // rawPath = [effectiveViewer, …, LCA, …, bloodTarget]
+  const rawPath = [...vPath, ...tPath.slice(0, -1).reverse()]
+  if (isInLaw && rawPath.length > 0) rawPath[rawPath.length - 1] = targetId
 
-  return { label: finalLabel, selfLabel, ordinal: ord, genDelta, path }
+  const isViewerInLaw = viewerId !== effectiveViewerId
+  const path     = isViewerInLaw ? [viewerId, ...rawPath] : rawPath
+  const lcaIndex = isViewerInLaw ? vDepth + 1            : vDepth
+
+  return { label: finalLabel, selfLabel, ordinal: ord, genDelta, path, lcaIndex }
 }

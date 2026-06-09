@@ -5,6 +5,7 @@ export async function treeToDataUrl(svgEl: SVGSVGElement, scale = 2): Promise<st
   // Inline the background fill so the exported image matches what's on screen
   const clone = svgEl.cloneNode(true) as SVGSVGElement
   clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+  clone.querySelectorAll('[data-no-export]').forEach(el => el.remove())
 
   const svgData = new XMLSerializer().serializeToString(clone)
   const blob    = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' })
@@ -21,7 +22,8 @@ export async function treeToDataUrl(svgEl: SVGSVGElement, scale = 2): Promise<st
   canvas.width  = w * scale
   canvas.height = h * scale
   const ctx = canvas.getContext('2d')!
-  ctx.fillStyle = '#fef9c3'
+  const bgColor = getComputedStyle(document.documentElement).getPropertyValue('--t-tree-bg').trim()
+  ctx.fillStyle = bgColor || '#ffffff'
   ctx.fillRect(0, 0, canvas.width, canvas.height)
   ctx.scale(scale, scale)
   ctx.drawImage(img, 0, 0, w, h)

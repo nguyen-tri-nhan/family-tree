@@ -135,6 +135,7 @@ interface DrawColors {
 function drawPerson(
   parent: D3G, cx: number, cy: number, person: Person, colors: DrawColors,
   onClick?: (id: string) => void,
+  hasIssue?: boolean,
 ) {
   const isFemale = person.gender === 'female'
   const iconColor = isFemale ? '#be185d' : '#1d4ed8'
@@ -169,6 +170,18 @@ function drawPerson(
   g.append('text').attr('y', R + (line2 ? 43 : 30)).attr('text-anchor', 'middle')
     .attr('font-size', '10px').attr('fill', colors.text5)
     .attr('font-family', 'system-ui, sans-serif').text(formatYears(person))
+
+  if (hasIssue) {
+    g.append('circle')
+      .attr('cx', 28).attr('cy', -28).attr('r', 8)
+      .attr('fill', '#f59e0b').attr('stroke', bg).attr('stroke-width', 2)
+    g.append('text')
+      .attr('x', 28).attr('y', -28)
+      .attr('text-anchor', 'middle').attr('dy', '0.35em')
+      .attr('font-size', '9px').attr('font-weight', '800')
+      .attr('fill', '#fff').attr('font-family', 'system-ui, sans-serif')
+      .text('!')
+  }
 }
 
 // ── Component ───────────────────────────────────────────────────
@@ -179,6 +192,8 @@ export interface FamilyTreeProps {
   onAddChild?:        (parentFamilyId: string) => void
   onAddSpouse?:       (familyId: string) => void
   highlightPersonId?: string
+  highlightPath?:     string[]
+  issuePersonIds?:    Set<string>
   darkMode?:          boolean
 }
 
@@ -187,11 +202,12 @@ type NodePos = { x: number; y: number }
 const FamilyTree = forwardRef<SVGSVGElement, FamilyTreeProps>(function FamilyTree({
   document: doc = DEMO_DOCUMENT,
   onPersonClick, onAddChild, onAddSpouse,
-  highlightPersonId, darkMode = false,
+  highlightPersonId, highlightPath, issuePersonIds, darkMode = false,
 }, forwardedRef) {
   const svgRef   = useRef<SVGSVGElement>(null)
   const zoomRef  = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null)
   const posRef   = useRef<Map<string, NodePos>>(new Map())
+  const linksRef = useRef<Map<string, string>>(new Map())  // "parentId:childId" → SVG path string
   const hlGRef   = useRef<D3G | null>(null)
 
   useImperativeHandle(forwardedRef, () => svgRef.current as SVGSVGElement)
@@ -263,23 +279,37 @@ const FamilyTree = forwardRef<SVGSVGElement, FamilyTreeProps>(function FamilyTre
     svg.call(zoom.transform, prevTransform)
 
     // Layer order: highlights → links → nodes
-    const hlG      = g.append('g').attr('class', 'hl') as D3G
+    const hlG      = g.append('g').attr('class', 'hl').attr('data-no-export', 'true') as D3G
     const linkLayer = g.append('g') as D3G
     const nodeLayer = g.append('g') as D3G
     hlGRef.current = hlG
+    hlG.append('g').attr('class', 'hl-search')
+    hlG.append('g').attr('class', 'hl-path')
 
     // ── Links ─────────────────────────────────────────────────
+    const edgeMap = new Map<string, string>()
     root.links().forEach(({ source, target }) => {
       const sx   = source.x
       const sy   = source.data.spouse ? source.y : source.y + R
       const tx   = target.data.spouse ? target.x - SPOUSE_GAP / 2 : target.x
       const ty   = target.y - R
       const midY = (source.y + target.y) / 2
+      const d    = `M ${sx} ${sy} V ${midY} H ${tx} V ${ty}`
       linkLayer.append('path')
-        .attr('d', `M ${sx} ${sy} V ${midY} H ${tx} V ${ty}`)
+        .attr('d', d)
         .attr('fill', 'none').attr('stroke', '#94a3b8')
         .attr('stroke-width', 2).attr('stroke-linecap', 'round')
+      edgeMap.set(`${source.data.person.id}:${target.data.person.id}`, d)
     })
+    // Store spouse lines too (for in-law paths)
+    root.each(n => {
+      if (n.data.spouse) {
+        const d = `M ${n.x - SPOUSE_GAP / 2 + R} ${n.y} H ${n.x + SPOUSE_GAP / 2 - R}`
+        edgeMap.set(`${n.data.person.id}:${n.data.spouse.id}`, d)
+        edgeMap.set(`${n.data.spouse.id}:${n.data.person.id}`, d)
+      }
+    })
+    linksRef.current = edgeMap
 
     // ── Nodes ────────────────────────────────────────────────
     root.each(node => {
@@ -290,17 +320,17 @@ const FamilyTree = forwardRef<SVGSVGElement, FamilyTreeProps>(function FamilyTre
           .attr('x1', x - SPOUSE_GAP / 2 + R).attr('y1', y)
           .attr('x2', x + SPOUSE_GAP / 2 - R).attr('y2', y)
           .attr('stroke', '#64748b').attr('stroke-width', 2)
-        drawPerson(nodeLayer, x + SPOUSE_GAP / 2, y, d.spouse,  colors, onPersonClick)
-        drawPerson(nodeLayer, x - SPOUSE_GAP / 2, y, d.person, colors, onPersonClick)
+        drawPerson(nodeLayer, x + SPOUSE_GAP / 2, y, d.spouse,  colors, onPersonClick, issuePersonIds?.has(d.spouse.id))
+        drawPerson(nodeLayer, x - SPOUSE_GAP / 2, y, d.person, colors, onPersonClick, issuePersonIds?.has(d.person.id))
       } else {
-        drawPerson(nodeLayer, x, y, d.person, colors, onPersonClick)
+        drawPerson(nodeLayer, x, y, d.person, colors, onPersonClick, issuePersonIds?.has(d.person.id))
       }
 
       // Collapse / expand badge
       const hasChildren = d.children.length > 0 || d.hiddenCount > 0
       if (hasChildren) {
         const isCollapsed = d.hiddenCount > 0
-        const badge = nodeLayer.append('g')
+        const badge = nodeLayer.append('g').attr('data-no-export', 'true')
           .attr('transform', `translate(${x},${y + R + 58})`)
           .style('cursor', 'pointer')
           .on('click', (e: MouseEvent) => {
@@ -325,7 +355,7 @@ const FamilyTree = forwardRef<SVGSVGElement, FamilyTreeProps>(function FamilyTre
       // Add-child button
       if (onAddChild) {
         const btnY = y + R + 58 + (hasChildren ? 26 : 0)
-        const addBtn = nodeLayer.append('g')
+        const addBtn = nodeLayer.append('g').attr('data-no-export', 'true')
           .attr('transform', `translate(${x},${btnY})`)
           .style('cursor', 'pointer')
           .on('click', (e: MouseEvent) => { e.stopPropagation(); onAddChild(d.familyId) })
@@ -341,7 +371,7 @@ const FamilyTree = forwardRef<SVGSVGElement, FamilyTreeProps>(function FamilyTre
       // Add-spouse button
       if (onAddSpouse && !d.spouse) {
         const spouseX = x + R + 16
-        const addSpouseBtn = nodeLayer.append('g')
+        const addSpouseBtn = nodeLayer.append('g').attr('data-no-export', 'true')
           .attr('transform', `translate(${spouseX},${y})`)
           .style('cursor', 'pointer')
           .on('click', (e: MouseEvent) => { e.stopPropagation(); onAddSpouse(d.familyId) })
@@ -354,17 +384,18 @@ const FamilyTree = forwardRef<SVGSVGElement, FamilyTreeProps>(function FamilyTre
           .text('⊕')
       }
     })
-  }, [doc, collapsed, onPersonClick, onAddChild, onAddSpouse, darkMode])  // darkMode triggers D3 re-read CSS vars
+  }, [doc, collapsed, onPersonClick, onAddChild, onAddSpouse, issuePersonIds, darkMode])  // darkMode triggers D3 re-read CSS vars
 
-  // ── Highlight ring (no full redraw) ───────────────────────────
+  // ── Search highlight ring (no full redraw) ───────────────────
   useEffect(() => {
     const hg = hlGRef.current
     if (!hg) return
-    hg.selectAll('*').remove()
+    const layer = hg.select<SVGGElement>('.hl-search')
+    layer.selectAll('*').remove()
     if (!highlightPersonId) return
     const pos = posRef.current.get(highlightPersonId)
     if (!pos) return
-    hg.append('circle')
+    layer.append('circle')
       .attr('cx', pos.x).attr('cy', pos.y)
       .attr('r', R + 10)
       .attr('fill', 'none')
@@ -372,6 +403,49 @@ const FamilyTree = forwardRef<SVGSVGElement, FamilyTreeProps>(function FamilyTre
       .attr('stroke-width', 3.5)
       .attr('stroke-dasharray', '6 3')
   }, [highlightPersonId])
+
+  // ── Kinship path highlight ────────────────────────────────────
+  useEffect(() => {
+    const hg = hlGRef.current
+    if (!hg) return
+    const layer = hg.select<SVGGElement>('.hl-path')
+    layer.selectAll('*').remove()
+    if (!highlightPath || highlightPath.length < 2) return
+
+    const edges     = linksRef.current
+    const positions = posRef.current
+
+    // Highlight each edge segment along the path
+    for (let i = 0; i < highlightPath.length - 1; i++) {
+      const a = highlightPath[i]
+      const b = highlightPath[i + 1]
+      const d = edges.get(`${a}:${b}`) ?? edges.get(`${b}:${a}`)
+      if (!d) continue
+      // Outer glow
+      layer.append('path')
+        .attr('d', d).attr('fill', 'none')
+        .attr('stroke', '#6366f1').attr('stroke-width', 10)
+        .attr('stroke-linecap', 'round').attr('opacity', 0.15)
+      // Inner highlight
+      layer.append('path')
+        .attr('d', d).attr('fill', 'none')
+        .attr('stroke', '#818cf8').attr('stroke-width', 4)
+        .attr('stroke-linecap', 'round').attr('opacity', 0.7)
+    }
+
+    // Endpoint rings
+    highlightPath.forEach((id, i) => {
+      const pos = positions.get(id)
+      if (!pos) return
+      const isEndpoint = i === 0 || i === highlightPath.length - 1
+      layer.append('circle')
+        .attr('cx', pos.x).attr('cy', pos.y)
+        .attr('r', R + (isEndpoint ? 9 : 6))
+        .attr('fill', isEndpoint ? 'rgba(99,102,241,0.08)' : 'none')
+        .attr('stroke', isEndpoint ? '#6366f1' : '#a5b4fc')
+        .attr('stroke-width', isEndpoint ? 2.5 : 1.5)
+    })
+  }, [highlightPath, doc])
 
   // ── Pan to highlighted node ───────────────────────────────────
   useEffect(() => {
