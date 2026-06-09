@@ -160,12 +160,78 @@ Khi `genDelta=1`, `branchRank≠0`, `isMaternal=true`:
 
 ---
 
+## M11 — Kinship §2e: female-as-personId bug fix + demo 7 đời (2026-06-10)
+
+### Bug fix — `kinship.ts` `buildAncestorSet`
+
+**Root cause**: Code giả định `personId` = cha (viaMother=false) và `spouseId` = mẹ (viaMother=true). Sai khi female là personId của family (ví dụ: Cô Út, Dì Hai là head của family riêng).
+
+**Fix**: Tại `depth=0` (bước đầu từ viewer), check gender thật của parent thay vì dùng position:
+```ts
+const next = depth === 0
+  ? idx.personMap.get(pf.personId)?.gender === 'female'
+  : viaMother
+```
+Áp dụng cho cả `personId` lẫn `spouseId`. Tại depth>0, kế thừa viaMother như cũ.
+
+**Test cases bổ sung (5 tests, tổng 89)**:
+- `p15 → p7: Mẹ` (female personId là mẹ của viewer)
+- `p15 → p14: Bố` (male spouseId là bố của viewer)
+- `p15 → p4: Ông ngoại` (trước fix ra "Ông nội" — core bug)
+- `p15 → p1: Cụ` (3 levels lên qua female personId chain)
+- `p15 → p5: Cậu Út` (genDelta=1, isMaternal=true)
+
+**Fixtures mở rộng**: Thêm `p14` (chồng p7), `p15` (con p7/p14), `f6` (personId=p7 female).
+
+### Demo files
+
+| File | Mô tả |
+|------|-------|
+| `sample/kinship-demo.json` | **Bắc**, 7 đời (gen 1–8), 42 người, 25 families |
+| `sample/kinship-demo-south.json` | **Nam**, cùng cấu trúc, `region=south` |
+| `sample/kinship-demo.ftree` | Encoded (28124 chars) |
+| `sample/kinship-demo-south.ftree` | Encoded (27616 chars) |
+
+**Cấu trúc 7 đời** (relative to An p10):
+
+| Gen (abs) | Người | An gọi là |
+|-----------|-------|-----------|
+| 1 | p32/p32w (Ông Sơ/Bà Sơ) | Ông Sơ / Bà Sơ (genDelta=5) |
+| 2 | p17/p17w (Ông Kỵ/Bà Kỵ) | Ông Kỵ / Bà Kỵ (genDelta=4) |
+| 3 | p18/p18w (Cụ nội), p20/p20w (Cụ ngoại) | Cụ (genDelta=3) |
+| 4 | p01/p01w (Ông bà nội), p06/p06w (Ông bà ngoại) | Ông/Bà nội/ngoại (genDelta=2) |
+| 5 | p02-p09 + Thím/Dượng | Bác/Chú/Cô/Cậu/Dì/Thím/Dượng (genDelta=1) |
+| 6 | p10 (An) + p33/p33w (Anh/Chị dâu) + cousins p12-p16, p25-p26 | — |
+| 7 | p11 (Con An), p28/p29 (Cháu họ) | Con / Cháu |
+| 8 | p30 (Cháu họ xa) | Cháu (genDelta=-2, selfLabel='Ông') |
+
+**Cases cover trong demo**:
+- ✅ Ông/Bà nội/ngoại (nội/ngoại distinction)
+- ✅ Cụ nội/ngoại (genDelta=3)
+- ✅ Ông Kỵ/Bà Kỵ (genDelta=4)
+- ✅ Ông Sơ/Bà Sơ (genDelta=5)
+- ✅ Bác Cả, Chú Ba/Tư, Cô Út (genDelta=1, nội side)
+- ✅ Cậu Cả/Hai, Dì Hai/Ba (genDelta=1, ngoại side)
+- ✅ Thím (vợ Chú) — applyInLaw(Chú→Thím)
+- ✅ Dượng (chồng Cô, bắc) / Chú (chồng Cô, nam)
+- ✅ Mợ (vợ Cậu) — applyInLaw(Cậu→Mợ)
+- ✅ Dượng (chồng Dì) — applyInLaw(Dì→Dượng)
+- ✅ Anh ruột + Chị dâu (applyInLaw Anh→Chị dâu)
+- ✅ Anh/Chị họ / Em họ (genDelta=0)
+- ✅ Chị dâu họ (vợ Anh họ)
+- ✅ Con dâu (Kim Chi, effectiveViewerId = An)
+- ✅ Con / Cháu (genDelta=-1, -2)
+- ✅ **BUG FIX DEMO**: p26 (con Cô Út, female personId family) → p01 = Ông ngoại
+
+---
+
 ## Chưa làm (enhancement-v2.md)
 
 | Mục | Section | Độ ưu tiên |
 |-----|---------|------------|
 | Custom xưng hô per-pair | §3 → v3 | — |
 | Quan hệ xuyên nhánh phức tạp (Case 2: họ hàng xa) | §2d | Thấp |
+| Tag "Thủy Tổ / Khai Tổ" cho node root | v-next | Thấp |
 
 ---
 

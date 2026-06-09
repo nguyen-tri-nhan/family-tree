@@ -362,3 +362,42 @@ describe('Fix 2d — in-law of cousin', () => {
     expect(r?.label).toBe('Em họ')
   })
 })
+
+// ── Bug fix: female as personId in family ───────────────────────
+// f6: personId=p7 (FEMALE), spouseId=p14 (male), childIds=[p15]
+// Without fix: p7 treated as "father" → p4 appears as nội → "Ông nội"
+// With fix: gender check at depth=0 → p7 is female → p4 is ngoại → "Ông ngoại"
+
+describe('Female personId bug fix — correct viaMother when mother is family head', () => {
+  test('p15 → p7: Mẹ (female personId is still the mother)', () => {
+    const r = computeKinship(makeTestDoc(), 'p15', 'p7', 'north')
+    expect(r?.label).toBe('Mẹ')
+    expect(r?.selfLabel).toBe('Con')
+    expect(r?.genDelta).toBe(1)
+  })
+
+  test('p15 → p14: Bố (male spouseId is the father)', () => {
+    const r = computeKinship(makeTestDoc(), 'p15', 'p14', 'north')
+    expect(r?.label).toBe('Bố')
+    expect(r?.genDelta).toBe(1)
+  })
+
+  test('p15 → p4: Ông ngoại (NOT Ông nội — p4 is mother p7s father)', () => {
+    const r = computeKinship(makeTestDoc(), 'p15', 'p4', 'north')
+    expect(r?.label).toBe('Ông ngoại')
+    expect(r?.genDelta).toBe(2)
+  })
+
+  test('p15 → p1: Cụ (3 levels up via female personId chain)', () => {
+    const r = computeKinship(makeTestDoc(), 'p15', 'p1', 'north')
+    expect(r?.label).toBe('Cụ')
+    expect(r?.genDelta).toBe(3)
+  })
+
+  test('p15 → p5: Cậu Út (p5 is 1 gen above p15; reached via p7/mother isMaternal=true)', () => {
+    // p15 depth-to-p1=3 (p15→p7→p4→p1), p5 depth-to-p1=2 (p5→p3→p1) → genDelta=1, isMaternal
+    const r = computeKinship(makeTestDoc(), 'p15', 'p5', 'north')
+    expect(r?.genDelta).toBe(1)
+    expect(r?.label).toBe('Cậu Út')
+  })
+})

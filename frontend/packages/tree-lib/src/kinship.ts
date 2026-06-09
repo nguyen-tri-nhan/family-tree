@@ -45,12 +45,18 @@ function buildAncestorSet(startId: string, idx: FtreeIndex): Map<string, Ancesto
     const pf = idx.childToParentFamily.get(id)
     if (!pf) continue
     if (pf.personId && !map.has(pf.personId)) {
-      map.set(pf.personId, { depth: depth + 1, parentId: id, viaMother })
-      queue.push({ id: pf.personId, depth: depth + 1, viaMother })
+      // At the viewer's own parent step (depth=0) use the parent's actual gender,
+      // because personId may be female (e.g. Cô Út as head of her own family).
+      const next = depth === 0
+        ? idx.personMap.get(pf.personId)?.gender === 'female'
+        : viaMother
+      map.set(pf.personId, { depth: depth + 1, parentId: id, viaMother: next })
+      queue.push({ id: pf.personId, depth: depth + 1, viaMother: next })
     }
     if (pf.spouseId && !map.has(pf.spouseId)) {
-      // Only flip viaMother at depth=0 (the very first maternal step from start).
-      const next = depth === 0 ? true : viaMother
+      const next = depth === 0
+        ? idx.personMap.get(pf.spouseId)?.gender === 'female'
+        : viaMother
       map.set(pf.spouseId, { depth: depth + 1, parentId: id, viaMother: next })
       queue.push({ id: pf.spouseId, depth: depth + 1, viaMother: next })
     }

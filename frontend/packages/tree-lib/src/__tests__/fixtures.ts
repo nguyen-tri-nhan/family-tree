@@ -33,6 +33,11 @@ function f(
  *  p10 (m, Ông ngoại) ─ p12 (f, Bà ngoại)
  *    ├── p8  (f, Mẹ = p3's wife)  [1st child]
  *    └── p13 (m, Cậu Út)          [2nd=last child]
+ *
+ *  §2d bug-fix — female personId family:
+ *  p7 (f, Em Họ Gái) ─ p14 (m, husband)   ← f6: personId=p7 (FEMALE!)
+ *    └── p15 (m, child)
+ *  p15→p4 phải là "Ông ngoại" (p7 là mẹ → p4 là ông ngoại của p15)
  */
 export function makeTestDoc(): FtreeDocument {
   return {
@@ -56,6 +61,9 @@ export function makeTestDoc(): FtreeDocument {
       p('p10', 'Ông ngoại',   'male'),
       p('p12', 'Bà ngoại',    'female'),
       p('p13', 'Cậu Út',      'male'),
+      // female-personId bug-fix case
+      p('p14', 'Chồng Em Họ', 'male'),
+      p('p15', 'Con Em Họ',   'male'),
     ],
     families: [
       f('f0', 'p00', 0, undefined, ['p11', 'p1']),
@@ -64,6 +72,8 @@ export function makeTestDoc(): FtreeDocument {
       f('f3', 'p4',  2, undefined, ['p6', 'p7']),
       f('f4', 'p5',  3, 'p9',     []),
       f('f5', 'p10', 1, 'p12',    ['p8', 'p13']),  // p8 first, p13 last → Cậu Út
+      // f6: p7 is FEMALE personId — the scenario that triggered the bug
+      f('f6', 'p7',  3, 'p14',    ['p15']),
     ],
   }
 }
