@@ -51,3 +51,81 @@ Không cần gọi GitHub API — link thẳng tới `https://github.com/nguyen-
 Vị trí đặt: màn hình chào (chưa mở file) hoặc banner cố định trên header.
 
 File ảnh hưởng: `App.tsx` hoặc tạo component nhỏ `DownloadBanner.tsx`.
+
+---
+
+## 4. Dark mode
+
+**Triệu chứng**: Toàn bộ màu sắc trong app được hard-code theo theme sáng (`#fff`, `#fef08a`, `#1e1b4b`...). Khi OS/browser đang ở dark mode, trình duyệt render nền tối nhưng app vẫn hiển thị nền trắng cục bộ — giao diện trông vá víu, không nhất quán.
+
+**Mục tiêu**: App tự động theo dark/light mode của hệ thống (hoặc có toggle thủ công).
+
+**Nguyên nhân**: Không sử dụng CSS custom properties; toàn bộ màu là inline style hard-code rải rác trong các component. Không có `prefers-color-scheme` media query.
+
+**Hướng xử lý**:
+
+### Bước 1 — CSS variables
+
+Khai báo design tokens trong `index.css` (web-app) / global style:
+
+```css
+:root {
+  --bg:           #ffffff;
+  --bg-secondary: #f9fafb;
+  --bg-card:      #ffffff;
+  --border:       #e5e7eb;
+  --text:         #1e1b4b;
+  --text-muted:   #6b7280;
+  --accent:       #fef08a;          /* header background */
+  --accent-border:#fde047;
+  --btn-primary:  #1e1b4b;
+  --btn-primary-text: #ffffff;
+  --btn-secondary:#e5e7eb;
+  --btn-secondary-text: #374151;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg:           #0f172a;
+    --bg-secondary: #1e293b;
+    --bg-card:      #1e293b;
+    --border:       #334155;
+    --text:         #f1f5f9;
+    --text-muted:   #94a3b8;
+    --accent:       #1e1b4b;
+    --accent-border:#312e81;
+    --btn-primary:  #6366f1;
+    --btn-primary-text: #ffffff;
+    --btn-secondary:#334155;
+    --btn-secondary-text: #e2e8f0;
+  }
+}
+```
+
+### Bước 2 — Thay thế inline styles bằng CSS variables
+
+Thay toàn bộ hard-code màu trong:
+- `App.tsx` — header, welcome screen, buttons, overlay
+- `PersonPanel.tsx`, `PersonForm.tsx`, `SearchBar.tsx`, `KinshipDrawer.tsx`, `ClanForm.tsx`
+- `FamilyTree.tsx` — SVG node fill: nam dùng `var(--btn-primary)`, nữ giữ `#be185d` (hoặc token riêng)
+
+### Bước 3 — (Tùy chọn) Toggle thủ công
+
+Thêm nút 🌙 / ☀ trong header để override OS preference, lưu vào `localStorage`.
+
+```ts
+const [theme, setTheme] = useState<'auto' | 'dark' | 'light'>('auto')
+// apply class 'dark' / 'light' lên document.documentElement
+```
+
+### Phạm vi ảnh hưởng
+
+| File | Thay đổi |
+|---|---|
+| `web-app/src/index.css` | Khai báo CSS variables + dark media query |
+| `electron-app/src/renderer/src/assets/index.css` | Tương tự |
+| `tree-lib/src/App.tsx` | Dùng CSS variables thay inline style |
+| `tree-lib/src/FamilyTree.tsx` | SVG node/link colors |
+| `tree-lib/src/components/*.tsx` | Tất cả modal, panel, sidebar |
+
+**Lưu ý**: Inline `style={{ color: '...' }}` không kế thừa CSS variables — cần chuyển sang `className` + CSS class, hoặc đọc variable qua `getComputedStyle` khi dùng trong D3/canvas.

@@ -5,7 +5,6 @@
 :root {
   color-scheme: light dark;
 
-  /* ── Light ───────────────────────────── */
   --t-bg:           #ffffff;
   --t-surface:      #f9fafb;
   --t-card:         #ffffff;
@@ -13,27 +12,21 @@
   --t-female-bg:    #fdf2f8;
   --t-male-bg:      #eff6ff;
   --t-tree-bg:      #fef9c3;
-
   --t-border:       #e5e7eb;
   --t-border-2:     #d1d5db;
-
   --t-text:         #1e1b4b;
   --t-text-2:       #374151;
   --t-text-3:       #6b7280;
   --t-text-4:       #9ca3af;
   --t-text-5:       #78716c;
-
   --t-brand:        #1e1b4b;
   --t-brand-fg:     #ffffff;
-
   --t-header:       #fef08a;
   --t-header-b:     #fde047;
-
   --t-btn2-bg:      #e5e7eb;
   --t-btn2-fg:      #374151;
 }
 
-/* Auto-dark: OS dark mode, unless user forced light */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
@@ -60,7 +53,6 @@
   }
 }
 
-/* Manual dark: user clicked the toggle */
 [data-theme="dark"] {
   color-scheme: dark;
   --t-bg:           #0f172a;
@@ -85,10 +77,7 @@
   --t-btn2-fg:      #e2e8f0;
 }
 
-/* Manual light: user forced light while OS is dark */
-[data-theme="light"] {
-  color-scheme: light;
-}
+[data-theme="light"] { color-scheme: light; }
 
 body {
   margin: 0;

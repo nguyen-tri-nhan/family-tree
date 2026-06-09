@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, useCallback } from 'react'
+import { useRef, useState, useEffect, useLayoutEffect, useCallback } from 'react'
 import FamilyTree from './FamilyTree'
 import { PersonPanel }  from './components/PersonPanel'
 import { PersonForm }   from './components/PersonForm'
@@ -46,6 +46,18 @@ export function App({
   const [compareMode,    setCompareMode] = useState<CompareMode>({ active: false })
   const [kinshipPair,    setKinshipPair] = useState<{ a: string; b: string } | null>(null)
   const [showClanForm,   setShowClanForm] = useState(false)
+
+  // ── Theme toggle ──────────────────────────────────────────────
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    const saved = localStorage.getItem('ft-theme')
+    if (saved === 'light' || saved === 'dark') return saved
+    return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+  })
+  useLayoutEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme)
+    localStorage.setItem('ft-theme', theme)
+  }, [theme])
+  const toggleTheme = useCallback(() => setTheme(t => t === 'dark' ? 'light' : 'dark'), [])
 
   useEffect(() => {
     storage.getRecentFiles().then(setRecent).catch(console.error)
@@ -152,17 +164,17 @@ export function App({
 
   if (!doc) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', gap: 16, ...dragStyle }}>
-        <h1 style={{ fontSize: 28, fontWeight: 900, color: '#1e1b4b' }}>Cây Gia Phả</h1>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', gap: 16, background: 'var(--t-bg)', ...dragStyle }}>
+        <h1 style={{ fontSize: 28, fontWeight: 900, color: 'var(--t-text)' }}>Cây Gia Phả</h1>
         <div style={{ display: 'flex', gap: 12, ...noDragStyle }}>
           <button onClick={handleOpen} style={btn(false)}>Mở file .ftree</button>
           <button onClick={handleNew}  style={btn(true)}>Tạo mới</button>
         </div>
         {recentFiles.length > 0 && (
           <div style={{ marginTop: 16, textAlign: 'center', ...noDragStyle }}>
-            <p style={{ fontSize: 12, color: '#9ca3af', marginBottom: 8 }}>File gần đây</p>
+            <p style={{ fontSize: 12, color: 'var(--t-text-4)', marginBottom: 8 }}>File gần đây</p>
             {recentFiles.map(f => (
-              <div key={f.path} style={{ fontSize: 13, color: '#4b5563' }}>
+              <div key={f.path} style={{ fontSize: 13, color: 'var(--t-text-2)' }}>
                 {f.name} — {f.path.split('/').pop()}
               </div>
             ))}
@@ -179,7 +191,7 @@ export function App({
 
   const headerStyle: React.CSSProperties = {
     position: 'fixed', top: 0, left: 0, right: 0, zIndex: 10,
-    background: '#fef08a', borderBottom: '1px solid #fde047',
+    background: 'var(--t-header)', borderBottom: '1px solid var(--t-header-b)',
     padding: headerPadding,
     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
     gap: 12,
@@ -190,8 +202,8 @@ export function App({
     <div style={{ fontFamily: 'system-ui, sans-serif', height: '100%', overflow: 'hidden' }}>
       <header style={headerStyle} onDoubleClick={onHeaderDoubleClick}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <h1 style={{ fontSize: 18, fontWeight: 900, color: '#1e1b4b', margin: 0 }}>Cây Gia Phả</h1>
-          <span style={{ fontSize: 11, color: '#78716c' }}>{doc.clan.name}</span>
+          <h1 style={{ fontSize: 18, fontWeight: 900, color: 'var(--t-text)', margin: 0 }}>Cây Gia Phả</h1>
+          <span style={{ fontSize: 11, color: 'var(--t-text-5)' }}>{doc.clan.name}</span>
         </div>
 
         <div style={noDragStyle}>
@@ -204,6 +216,7 @@ export function App({
           <button onClick={handleExportPng}             style={btn(false)}>↓ PNG</button>
           <button onClick={handleExportPdf}             style={btn(false)}>↓ PDF</button>
           <button onClick={() => setShowClanForm(true)} style={btn(false)}>⚙</button>
+          <button onClick={toggleTheme}                 style={btn(false)} title={theme === 'dark' ? 'Chuyển sang sáng' : 'Chuyển sang tối'}>{theme === 'dark' ? '☀' : '🌙'}</button>
         </div>
       </header>
 
@@ -222,10 +235,11 @@ export function App({
           onPersonClick={handlePersonClick}
           onAddChild={handleAddChild}
           onAddSpouse={handleAddSpouse}
+          darkMode={theme === 'dark'}
         />
         {doc.families.length === 0 && (
           <div style={emptyState}>
-            <p style={{ margin: '0 0 12px', color: '#6b7280', fontSize: 14 }}>Chưa có ai trong gia phả</p>
+            <p style={{ margin: '0 0 12px', color: 'var(--t-text-3)', fontSize: 14 }}>Chưa có ai trong gia phả</p>
             <button onClick={() => setFormMode({ type: 'add-root' })} style={btn(true)}>
               + Thêm người đầu tiên
             </button>
@@ -302,8 +316,8 @@ function btn(primary: boolean): React.CSSProperties {
   return {
     padding: '6px 14px', borderRadius: 8, border: 'none',
     fontSize: 13, fontWeight: 700, cursor: 'pointer',
-    background: primary ? '#1e1b4b' : '#e5e7eb',
-    color:      primary ? '#fff'    : '#374151',
+    background: primary ? 'var(--t-brand)'   : 'var(--t-btn2-bg)',
+    color:      primary ? 'var(--t-brand-fg)' : 'var(--t-btn2-fg)',
     whiteSpace: 'nowrap',
   }
 }
