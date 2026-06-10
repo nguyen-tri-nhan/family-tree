@@ -1,6 +1,8 @@
 import { describe, test, expect } from 'vitest'
 import { computeKinship, getSiblingOrdinal } from '../kinship'
 import { makeTestDoc } from './fixtures'
+import type { FtreeDocument } from '../types'
+import { FTREE_VERSION } from '../types'
 
 // ── getSiblingOrdinal ────────────────────────────────────────────
 
@@ -131,10 +133,10 @@ describe('computeKinship — cousins', () => {
     expect(r?.label).toBe('Em họ')
   })
 
-  test('p6 → p5: junior branch calls senior "Anh họ"', () => {
+  test('p6 → p5: junior branch calls senior "Anh họ", selfLabel "Em họ"', () => {
     const r = computeKinship(makeTestDoc(), 'p6', 'p5', 'north')
     expect(r?.label).toBe('Anh họ')
-    expect(r?.selfLabel).toBe('Em')
+    expect(r?.selfLabel).toBe('Em họ')
   })
 })
 
@@ -182,6 +184,21 @@ describe('computeKinship — path + lcaIndex', () => {
     // path = [p5, p3, p1, p4, p6] → LCA p1 at index 2
     expect(r?.lcaIndex).toBe(2)
     expect(r?.path[r.lcaIndex]).toBe('p1')
+  })
+
+  test('in-law target: blood person stays in path before in-law', () => {
+    // p5 → p2: p2 is in-law (spouseId) of p1. Path must include p1 before p2.
+    const r = computeKinship(makeTestDoc(), 'p5', 'p2', 'north')
+    expect(r?.path).toEqual(['p5', 'p3', 'p1', 'p2'])
+    expect(r?.lcaIndex).toBe(2) // LCA is p1 at index 2
+  })
+
+  test('in-law viewer: marriage edge from viewer to blood is path start', () => {
+    // p9 (viewer=dâu) → p13: path starts [p9, p5, ...]
+    const r = computeKinship(makeTestDoc(), 'p9', 'p13', 'north')
+    expect(r?.path[0]).toBe('p9')
+    expect(r?.path[1]).toBe('p5')
+    expect(r?.path[r!.path.length - 1]).toBe('p13')
   })
 })
 
@@ -349,17 +366,84 @@ describe('Fix 2b — Cậu/Dì (siblings of mother)', () => {
   })
 })
 
-// ── Fix 2d: vợ/chồng của anh/em họ ─────────────────────────────
+// ── Fix 2d: vợ/chồng của anh/em họ + họ hàng xa đời ─────────────
 
-describe('Fix 2d — in-law of cousin', () => {
-  // Need a female cousin to test "chị dâu họ" case
-  // p7 (f, Em họ gái) — chị/em của p5's cousin from p4's branch
-  // For "anh rể họ" we'd need a male married to p7, but fixture doesn't have that.
-  // We can test applyInLaw logic via the existing Anh/Chị mapping.
+const NOW = '2024-01-01T00:00:00.000Z'
+function mkP(id: string, gender: 'male' | 'female'): FtreeDocument['persons'][0] {
+  return { id, displayName: id, gender, isAlive: true, createdAt: NOW, updatedAt: NOW }
+}
+function mkF(id: string, personId: string, gen: number, spouseId?: string, childIds: string[] = []): FtreeDocument['families'][0] {
+  return { id, personId, generation: gen, spouseId, childIds, marriageStatus: spouseId ? 'married' : 'single' }
+}
 
+describe('Fix 2d Case1 — vợ/chồng của anh/em họ', () => {
   test('p9 → p6: Em họ (blood cousin, unchanged)', () => {
     const r = computeKinship(makeTestDoc(), 'p9', 'p6', 'north')
     expect(r?.label).toBe('Em họ')
+  })
+
+  // p6 views p5 as "Anh họ" (p5 is senior). p5's wife is p9 → "Chị (dâu) họ"
+  test('p6 → p9: Chị (dâu) họ (wife of Anh họ p5)', () => {
+    const r = computeKinship(makeTestDoc(), 'p6', 'p9', 'north')
+    expect(r?.label).toBe('Chị (dâu) họ')
+    // Path must include p5 (blood) before p9 (in-law): edge p5→p9 is the marriage line
+    expect(r?.path).toEqual(['p6', 'p4', 'p1', 'p3', 'p5', 'p9'])
+  })
+
+  // p14 is husband of p7 (Em Họ Gái). "Em họ" bloodLabel hits fallback in applyInLaw.
+  // "Em rể họ" needs blood gender in applyInLaw — deferred to K3 follow-up.
+  test('p5 → p14: Em họ (husband of Em Họ Gái p7 — current fallback)', () => {
+    const r = computeKinship(makeTestDoc(), 'p5', 'p14', 'north')
+    expect(r?.label).toBe('Em họ')
+  })
+})
+
+// Case 2: second+ cousins (depth ≥ 3 from LCA)
+// root (m) → branchA (m) → ac (m) → viewer (m)   ← depth 3 from root
+//          → branchB (m) → bc (m) → target (m)   ← depth 3 from root
+function makeSecondCousinDoc(): FtreeDocument {
+  return {
+    version: FTREE_VERSION,
+    createdAt: NOW, updatedAt: NOW,
+    clan: { id: 'c1', name: 'Test', surname: 'T' },
+    branches: [],
+    persons: [
+      mkP('root', 'male'),
+      mkP('a',    'male'), mkP('ac', 'male'), mkP('v', 'male'),
+      mkP('b',    'male'), mkP('bc', 'male'), mkP('t', 'male'),
+    ],
+    families: [
+      mkF('f0', 'root', 0, undefined, ['a', 'b']),
+      mkF('f1', 'a',    1, undefined, ['ac']),
+      mkF('f2', 'ac',   2, undefined, ['v']),
+      mkF('f3', 'b',    1, undefined, ['bc']),
+      mkF('f4', 'bc',   2, undefined, ['t']),
+    ],
+  }
+}
+
+describe('Fix 2d Case2 — họ hàng xa chi tiết', () => {
+  test('first cousins still "Anh họ"/"Em họ" (depth 2)', () => {
+    expect(computeKinship(makeTestDoc(), 'p6', 'p5', 'north')?.label).toBe('Anh họ')
+    expect(computeKinship(makeTestDoc(), 'p5', 'p6', 'north')?.label).toBe('Em họ')
+  })
+
+  test('second cousins: v → t "Em họ 2 đời" (depth 3 from root)', () => {
+    const r = computeKinship(makeSecondCousinDoc(), 'v', 't', 'north')
+    expect(r?.label).toBe('Em họ 2 đời')
+    expect(r?.genDelta).toBe(0)
+  })
+
+  test('second cousins: t → v "Anh họ 2 đời"', () => {
+    const r = computeKinship(makeSecondCousinDoc(), 't', 'v', 'north')
+    expect(r?.label).toBe('Anh họ 2 đời')
+  })
+
+  test('selfLabel is "Anh họ 2 đời"/"Em họ 2 đời"', () => {
+    const rv = computeKinship(makeSecondCousinDoc(), 'v', 't', 'north')
+    expect(rv?.selfLabel).toBe('Anh họ 2 đời')
+    const rt = computeKinship(makeSecondCousinDoc(), 't', 'v', 'north')
+    expect(rt?.selfLabel).toBe('Em họ 2 đời')
   })
 })
 
@@ -388,9 +472,28 @@ describe('Female personId bug fix — correct viaMother when mother is family he
     expect(r?.genDelta).toBe(2)
   })
 
-  test('p15 → p1: Cụ (3 levels up via female personId chain)', () => {
+  test('p5 → p00: Ông Cụ nội (direct paternal line, north)', () => {
+    const r = computeKinship(makeTestDoc(), 'p5', 'p00', 'north')
+    expect(r?.label).toBe('Ông Cụ nội')
+    expect(r?.genDelta).toBe(3)
+  })
+
+  test('p5 → p00: Ông Cố nội (direct paternal line, south)', () => {
+    const r = computeKinship(makeTestDoc(), 'p5', 'p00', 'south')
+    expect(r?.label).toBe('Ông Cố nội')
+    expect(r?.genDelta).toBe(3)
+  })
+
+  test('p00 → p5: Chắt / selfLabel Ông Cụ (p00 is male, north)', () => {
+    const r = computeKinship(makeTestDoc(), 'p00', 'p5', 'north')
+    expect(r?.label).toBe('Chắt')
+    expect(r?.selfLabel).toBe('Ông Cụ')
+    expect(r?.genDelta).toBe(-3)
+  })
+
+  test('p15 → p1: Ông Cụ ngoại (3 levels up via maternal chain, p1 is male)', () => {
     const r = computeKinship(makeTestDoc(), 'p15', 'p1', 'north')
-    expect(r?.label).toBe('Cụ')
+    expect(r?.label).toBe('Ông Cụ ngoại')
     expect(r?.genDelta).toBe(3)
   })
 

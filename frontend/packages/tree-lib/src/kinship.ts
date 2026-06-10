@@ -87,14 +87,15 @@ function g(gender: Person['gender'], m: string, f: string): string {
 // branchRank < 0: viewer's branch is senior → target is junior (Chú/Cô/Em)
 // branchRank = 0: direct line (Cha/Mẹ, Con, direct ancestor/descendant)
 function buildLabel(
-  genDelta:   number,
-  branchRank: number,
-  isSibling:  boolean,
+  genDelta:     number,
+  branchRank:   number,
+  isSibling:    boolean,
   tg: Person['gender'],
   vg: Person['gender'],
-  ordinal:    string | undefined,
-  region:     Region,
-  isMaternal: boolean,
+  ordinal:      string | undefined,
+  region:       Region,
+  isMaternal:   boolean,
+  minLcaDepth:  number = 1,
 ): { label: string; selfLabel: string; ordinal?: string } {
   const showOrd = genDelta === 1 || isSibling || (genDelta === 2 && branchRank !== 0)
   const N = showOrd && ordinal ? ` ${ordinal}` : ''
@@ -102,7 +103,11 @@ function buildLabel(
   // ── Ascending ────────────────────────────────────────────────
   if (genDelta >= 5) return { label: g(tg, `Ông Sơ${N}`, `Bà Sơ${N}`),   selfLabel: 'Cháu', ordinal }
   if (genDelta === 4) return { label: g(tg, `Ông Kỵ${N}`, `Bà Kỵ${N}`),   selfLabel: 'Cháu', ordinal }
-  if (genDelta === 3) return { label: (region === 'south' ? 'Cố' : 'Cụ') + N, selfLabel: 'Cháu chắt', ordinal }
+  if (genDelta === 3) {
+    const side = isMaternal ? 'ngoại' : 'nội'
+    const root = region === 'south' ? 'Cố' : 'Cụ'
+    return { label: g(tg, `Ông ${root} ${side}${N}`, `Bà ${root} ${side}${N}`), selfLabel: 'Cháu chắt', ordinal }
+  }
 
   if (genDelta === 2) {
     const side = isMaternal ? 'ngoại' : 'nội'
@@ -126,16 +131,17 @@ function buildLabel(
 
   // ── Same generation ──────────────────────────────────────────
   if (genDelta === 0) {
+    const doi = !isSibling && minLcaDepth >= 3 ? ` ${minLcaDepth - 1} đời` : ''
     if (branchRank > 0) {
       return {
-        label:     g(tg, isSibling ? `Anh${N}` : 'Anh họ', isSibling ? `Chị${N}` : 'Chị họ'),
-        selfLabel: 'Em',
+        label:     g(tg, isSibling ? `Anh${N}` : `Anh họ${doi}`, isSibling ? `Chị${N}` : `Chị họ${doi}`),
+        selfLabel: isSibling ? 'Em' : `Em họ${doi}`,
       }
     }
     if (branchRank < 0) {
       return {
-        label:     isSibling ? `Em${N}` : 'Em họ',
-        selfLabel: g(vg, isSibling ? 'Anh' : 'Anh họ', isSibling ? 'Chị' : 'Chị họ'),
+        label:     isSibling ? `Em${N}` : `Em họ${doi}`,
+        selfLabel: g(vg, isSibling ? 'Anh' : `Anh họ${doi}`, isSibling ? 'Chị' : `Chị họ${doi}`),
       }
     }
     return { label: 'Họ hàng', selfLabel: 'Họ hàng' }
@@ -154,7 +160,7 @@ function buildLabel(
     return { label: 'Cháu', selfLabel: sl }
   }
   if (genDelta === -2) return { label: 'Cháu', selfLabel: g(vg, 'Ông', 'Bà') }
-  if (genDelta === -3) return { label: 'Chắt', selfLabel: region === 'south' ? 'Cố' : 'Cụ' }
+  if (genDelta === -3) return { label: 'Chắt', selfLabel: region === 'south' ? g(vg, 'Ông Cố', 'Bà Cố') : g(vg, 'Ông Cụ', 'Bà Cụ') }
   if (genDelta === -4) return { label: region === 'north' ? 'Chút' : 'Chít', selfLabel: 'Ông Kỵ' }
   if (genDelta <= -5) return { label: region === 'north' ? 'Chít' : 'Chút', selfLabel: 'Ông Sơ' }
 
@@ -181,11 +187,11 @@ function applyInLaw(
       Bố: 'Mẹ', Ba: 'Má',
       // Ascending (vợ của...)
       Chú: 'Thím', Bác: 'Bác', Ông: 'Bà', Cụ: 'Cụ', Cậu: 'Mợ',
-      // Same-gen in-law: vợ của anh = chị dâu (not chị)
-      Anh: 'Chị dâu',
+      // Same-gen in-law: vợ của anh = chị (dâu)
+      Anh: 'Chị (dâu)',
       // Descending (dâu)
-      Con: 'Con dâu', Cháu: 'Cháu dâu', Chắt: 'Chắt dâu',
-      Chút: 'Chút dâu', Chít: 'Chít dâu',
+      Con: 'Con (dâu)', Cháu: 'Cháu (dâu)', Chắt: 'Chắt (dâu)',
+      Chút: 'Chút (dâu)', Chít: 'Chít (dâu)',
     } as Record<string,string>)[base] ?? base
   } else {
     const chu = region === 'south' ? 'Chú' : 'Dượng'
@@ -194,11 +200,11 @@ function applyInLaw(
       Mẹ: region === 'south' ? 'Ba' : 'Bố', Má: 'Ba',
       // Ascending (chồng của...)
       Cô: chu, Bác: 'Bác', Dì: 'Dượng', Bà: 'Ông', Cụ: 'Cụ',
-      // Same-gen in-law: chồng của chị = anh rể (not anh)
-      Chị: 'Anh rể',
+      // Same-gen in-law: chồng của chị = anh (rể)
+      Chị: 'Anh (rể)',
       // Descending (rể)
-      Con: 'Con rể', Cháu: 'Cháu rể', Chắt: 'Chắt rể',
-      Chút: 'Chút rể', Chít: 'Chít rể',
+      Con: 'Con (rể)', Cháu: 'Cháu (rể)', Chắt: 'Chắt (rể)',
+      Chút: 'Chút (rể)', Chít: 'Chít (rể)',
     } as Record<string,string>)[base] ?? base
   }
 
@@ -298,6 +304,7 @@ export function computeKinship(
   // viewer.gender (not effectiveViewer) is used for selfLabel — dâu/rể xưng theo giới tính thật
   const { label: raw, selfLabel, ordinal: ord } = buildLabel(
     genDelta, branchRank, isSibling, bloodTarget.gender, viewer.gender, ordinal, region, isMaternal,
+    Math.min(vDepth, tDepth),
   )
 
   const finalLabel = isInLaw ? applyInLaw(raw, target.gender, region, ordinal) : raw
@@ -305,7 +312,8 @@ export function computeKinship(
   // Path: viewer → LCA → target.
   // rawPath = [effectiveViewer, …, LCA, …, bloodTarget]
   const rawPath = [...vPath, ...tPath.slice(0, -1).reverse()]
-  if (isInLaw && rawPath.length > 0) rawPath[rawPath.length - 1] = targetId
+  // Append in-law AFTER blood relative (not replace) so blood→in-law marriage edge is included.
+  if (isInLaw) rawPath.push(targetId)
 
   const isViewerInLaw = viewerId !== effectiveViewerId
   const path     = isViewerInLaw ? [viewerId, ...rawPath] : rawPath
