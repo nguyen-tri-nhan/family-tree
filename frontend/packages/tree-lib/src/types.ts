@@ -123,6 +123,7 @@ export interface Person {
 // ── Family Unit ────────────────────────────────────────────────
 
 export type MarriageStatus = 'married' | 'divorced' | 'widowed' | 'single'
+export type MarriageRole   = 'normal' | 'chinh' | 'thu' | 'thiep'
 
 export interface FamilyUnit {
   id: string            // UUID v4
@@ -131,6 +132,8 @@ export interface FamilyUnit {
   marriageDate?: PartialDate
   divorceDate?: PartialDate
   marriageStatus: MarriageStatus
+  marriageRole?:  MarriageRole    // chỉ dùng khi đa thê; default 'normal'
+  marriageOrder?: number          // 1-based thứ tự hôn nhân; default 1
   childIds: string[]    // ordered: con cả → con út
   branchId?: string
   generation: number    // đời 1 = cụ tổ
@@ -197,28 +200,43 @@ export interface FtreeDocument {
 // ── Index maps (runtime only, không lưu vào file) ──────────────
 
 export interface FtreeIndex {
-  personMap:           Map<string, Person>
-  familyMap:           Map<string, FamilyUnit>
-  branchMap:           Map<string, Branch>
-  familyByPerson:      Map<string, FamilyUnit>  // personId  → FamilyUnit
-  childToParentFamily: Map<string, FamilyUnit>  // childId   → parent FamilyUnit
-  familyBySpouse:      Map<string, FamilyUnit>  // spouseId  → FamilyUnit
+  personMap:            Map<string, Person>
+  familyMap:            Map<string, FamilyUnit>
+  branchMap:            Map<string, Branch>
+  familyByPerson:       Map<string, FamilyUnit>    // personId → primary FamilyUnit (marriageOrder=1)
+  familiesByPerson:     Map<string, FamilyUnit[]>  // personId → all FamilyUnits sorted by marriageOrder
+  childToParentFamily:  Map<string, FamilyUnit>    // childId  → parent FamilyUnit
+  familyBySpouse:       Map<string, FamilyUnit>    // spouseId → first FamilyUnit (primary)
 }
 
 export function buildIndex(doc: FtreeDocument): FtreeIndex {
-  const childToParentFamily = new Map<string, FamilyUnit>()
-  const familyBySpouse      = new Map<string, FamilyUnit>()
+  const childToParentFamily  = new Map<string, FamilyUnit>()
+  const familyBySpouse       = new Map<string, FamilyUnit>()
+  const familiesByPersonMap  = new Map<string, FamilyUnit[]>()
 
   for (const f of doc.families) {
     for (const cid of f.childIds) childToParentFamily.set(cid, f)
-    if (f.spouseId) familyBySpouse.set(f.spouseId, f)
+    if (f.spouseId && !familyBySpouse.has(f.spouseId)) familyBySpouse.set(f.spouseId, f)
+    const list = familiesByPersonMap.get(f.personId) ?? []
+    list.push(f)
+    familiesByPersonMap.set(f.personId, list)
   }
+
+  // Sort each person's families by marriageOrder (default 1)
+  familiesByPersonMap.forEach(list =>
+    list.sort((a, b) => (a.marriageOrder ?? 1) - (b.marriageOrder ?? 1)),
+  )
+
+  // familyByPerson: primary (lowest marriageOrder) family per person
+  const familyByPersonMap = new Map<string, FamilyUnit>()
+  familiesByPersonMap.forEach((list, pid) => familyByPersonMap.set(pid, list[0]))
 
   return {
     personMap:           new Map(doc.persons.map(p  => [p.id, p])),
     familyMap:           new Map(doc.families.map(f => [f.id, f])),
     branchMap:           new Map(doc.branches.map(b => [b.id, b])),
-    familyByPerson:      new Map(doc.families.map(f => [f.personId, f])),
+    familyByPerson:      familyByPersonMap,
+    familiesByPerson:    familiesByPersonMap,
     childToParentFamily,
     familyBySpouse,
   }

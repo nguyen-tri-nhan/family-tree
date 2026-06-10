@@ -49,6 +49,28 @@ export function addFamilyUnit(
   return touchUpdatedAt({ ...doc, families: [...doc.families, family] })
 }
 
+// Thêm hôn nhân mới cho một person đã có FamilyUnit (đa thê / tái hôn)
+export function addMarriage(
+  doc: FtreeDocument,
+  personId: string,
+): { doc: FtreeDocument; familyId: string } {
+  const existing = doc.families.filter(f => f.personId === personId)
+  if (existing.length === 0) throw new Error('Person chưa có FamilyUnit — dùng addFamilyUnit trước')
+  const maxOrder  = existing.reduce((m, f) => Math.max(m, f.marriageOrder ?? 1), 0)
+  const baseFamily = existing[0]
+  const familyId   = crypto.randomUUID()
+  const family: FamilyUnit = {
+    id:             familyId,
+    personId,
+    marriageStatus: 'single',
+    marriageOrder:  maxOrder + 1,
+    childIds:       [],
+    generation:     baseFamily.generation,
+    branchId:       baseFamily.branchId,
+  }
+  return { doc: touchUpdatedAt({ ...doc, families: [...doc.families, family] }), familyId }
+}
+
 // Gán vợ/chồng cho FamilyUnit đã có — tạo Person mới từ input
 export function setSpouse(
   doc: FtreeDocument,

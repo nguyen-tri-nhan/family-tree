@@ -8,6 +8,8 @@ Cập nhật: 2026-06-10
 
 ## Scope
 
+Chỉ quan tâm **huyết thống trực hệ** — con ruột và cha/mẹ đẻ. Mọi quan hệ phát sinh từ hôn nhân mới của người đã ly hôn (bố dượng, mẹ kế, con riêng của vợ/chồng mới) nằm ngoài phạm vi.
+
 ### Scenario 1 — Đa thê (historical polygamy)
 
 Quan lớn, địa chủ thời phong kiến có thể có 3–4 vợ cùng lúc:
@@ -16,28 +18,26 @@ Quan lớn, địa chủ thời phong kiến có thể có 3–4 vợ cùng lúc
 Nguyễn Văn Đức
   ├── Vợ cả:  Trần Thị Lan  → Con 1, Con 2, Con 3
   ├── Vợ hai: Lê Thị Hoa   → Con 4, Con 5
-  ├── Vợ ba:  Phạm Thị Mai  → Con 6
-  └── Vợ tư:  Bùi Thị Xuân → Con 7, Con 8
+  └── Vợ ba:  Phạm Thị Mai  → Con 6
 ```
 
-Tất cả con đều có quan hệ huyết thống rõ ràng với cha. Anh/em với nhau nhưng khác mẹ.
+Tất cả con đều có quan hệ huyết thống với cha. Con khác mẹ → anh/em cùng cha khác mẹ.
 
 ### Scenario 2 — Ly hôn / Tái hôn
 
 ```
-Minh ──── Mai (ly hôn 1995) → Khánh (sinh 1990)
-Minh ──── Lan (tái hôn 1997) → Huy (sinh 1999)
-Mai  ──── Tuấn (tái hôn 1996) → Linh (sinh 1997)
+Minh ──── Mai (ly hôn) → Khánh
+Minh ──── Lan (tái hôn) → Huy
 ```
 
-- Khánh và Huy: anh/em cùng cha khác mẹ
-- Khánh và Linh: anh/em cùng mẹ khác cha
-- Huy và Linh: không có quan hệ huyết thống — chỉ là anh/em kế qua bố/mẹ
+Chỉ track: Khánh và Huy là **anh/em cùng cha khác mẹ**.
+Không track: Minh với chồng mới của Mai, hay Mai với Lan.
 
-### Out of scope (lần này)
+### Out of scope
 
-- Nuôi con nuôi (adopted) — track riêng
-- Quan hệ ngoài giá thú không công nhận — không track
+- Quan hệ bố dượng / mẹ kế / con riêng của vợ chồng mới
+- Nuôi con nuôi (adopted) — track riêng sau
+- Quan hệ ngoài giá thú không công nhận
 
 ---
 
@@ -111,109 +111,98 @@ Mỗi child vẫn chỉ có 1 cha + 1 mẹ sinh → `childToParentFamily: Map<st
 
 ---
 
-## Tree Layout — Tiered Edge Routing
+## Tree Layout — Horizontal Spread + 90° Edges
 
 ### Nguyên tắc
 
-Giữ nguyên cấu trúc node hiện tại (không đổi FamilyNode layout). Thay đổi chỉ ở **đường nối** và thêm **collapse/expand** cho các hôn nhân phụ.
+- Giữ nguyên node hiện tại (không đổi FamilyNode)
+- Vợ/chồng phụ trải **ngang** trong cùng generation row — không bị đẩy lên/xuống thế hệ khác
+- Tất cả spouse ở cùng `y` → vai vế đọc được, không phân biệt thứ bậc qua vị trí
+- Đường nối dùng góc 90° với **offset dọc khác nhau** giữa các marriages để tránh chồng nhau
 
-Thực tế: không ai có tới 20 lần tái hôn hay hàng trăm vợ — thiết kế cho trường hợp phổ biến là 2–4 hôn nhân.
-
-### Edge routing — 90° tiered lanes
-
-Mỗi hôn nhân của cùng 1 người cha/mẹ được cấp 1 **lane ngang** riêng, xếp từ trên xuống. Đường nối dùng toàn góc 90° (không diagonal), tránh đường chồng lên nhau.
-
-```
-        [Nguyễn Văn Đức]
-               │
-    ┌──────────┤  ← lane 1 (vợ cả, luôn mở)
-    │          │
-[Trần Thị Lan]─┘
-    │
- [C1] [C2] [C3]
-
-
-               │
-    ┌──────────┤  ← lane 2 (vợ lẽ, mặc định collapse)
-    │          │
-[Lê Thị Hoa]──┘ ▶ [+2 con]   ← collapsed badge
-
-
-               │
-    ┌──────────┤  ← lane 3 (vợ ba, collapse)
-    │          │
-[Phạm Thị Mai]─┘ ▶ [+1 con]
-```
-
-- Mỗi lane nằm ở `y = nodeY + ROW_HEIGHT * order` — không chồng nhau theo chiều dọc
-- Đường dọc từ node cha chạy xuống liên tục, mỗi lane rẽ ngang sang spouse bằng 1 đoạn thẳng ngang
-- Khoảng cách giữa các lane: `MARRIAGE_ROW_GAP = 80px` (đủ để chứa badge label)
-
-### Collapse / Expand
-
-- **Hôn nhân đầu tiên** (`marriageOrder = 1`): luôn expanded — hiển thị spouse + children như node thường
-- **Hôn nhân từ thứ 2 trở đi**: mặc định **collapsed**
-  - Hiển thị: `[Tên vợ/chồng]  ▶ +N con`
-  - Click vào row → expand, render children bên dưới lane đó
-  - Click lại → collapse lại
+### Layout — cùng generation, trải ngang
 
 ```
-  State: collapsed                 State: expanded
-  ──────────────────               ─────────────────────────────
-  [Lê Thị Hoa] ▶ +3 con     →     [Lê Thị Hoa]
-                                        │
-                                    [C4] [C5] [C6]
+Gen N:
+  [Vợ 2]═══╗         ╔═══[Nguyễn Văn Đức]═══[Vợ 1]
+            ╚═════════╝          (▼ thêm hôn nhân trong panel)
+
+Gen N+1:
+  [C4] [C5]                [C1] [C2] [C3]
 ```
 
-### SVG implementation
+- Hôn nhân #1 (`marriageOrder=1`): luôn hiển thị, vợ bên phải — giữ nguyên như hiện tại
+- Hôn nhân #2 trở đi: vợ bên trái (hoặc tiếp tục sang phải theo thứ tự), **mặc định collapsed**
+- Không có vợ nào cao hơn hoặc thấp hơn vợ khác — tất cả cùng `y`
 
-Dùng `<path>` với lệnh `M … H … V … H` (Move, Horizontal, Vertical) thay vì đường cong cubic Bezier hiện tại.
+### 90° Edge routing — offset lane
+
+Các đường nối từ cặp cha-mẹ xuống con dùng **lane dọc riêng** tại `x` offset nhỏ để không đè lên nhau:
+
+```
+          [Vợ 2]═══[Cha]═══[Vợ 1]
+               ↓         ↓
+           laneX-8    laneX+8     ← offset theo marriageOrder
+               │         │
+          [C4][C5]  [C1][C2][C3]
+```
+
+Mỗi marriage dùng `laneX = parentCenterX + (order - 1) * LANE_OFFSET` làm điểm rẽ đứng xuống children. `LANE_OFFSET = 12px` — nhỏ đủ để phân biệt mà không lệch nhiều.
 
 ```ts
-// Edge từ node cha (px, py) → lane y → spouse (sx, sy)
-function tieredEdgePath(
-  px: number, py: number,   // bottom-center của node cha
-  laneY: number,            // y của lane ngang
-  sx: number, sy: number,   // center của spouse node
+function marriageEdgePath(
+  parentX: number, parentBottomY: number,
+  childX: number,  childTopY: number,
+  laneX: number,   // offset theo từng marriage
 ): string {
-  const midX = (px + sx) / 2
+  const midY = (parentBottomY + childTopY) / 2
   return [
-    `M ${px} ${py}`,
-    `V ${laneY}`,           // đi thẳng xuống đến lane
-    `H ${sx}`,              // rẽ ngang đến cột spouse
-    `V ${sy}`,              // đi xuống đến center spouse
+    `M ${parentX} ${parentBottomY}`,
+    `V ${midY}`,          // xuống đến giữa khoảng cách
+    `H ${laneX}`,         // rẽ ngang sang lane
+    `V ${midY}`,          // đứng tại lane (nối với nhánh ngang chung)
+    `H ${childX}`,        // sang cột của child
+    `V ${childTopY}`,     // lên đến top của child node
   ].join(' ')
 }
 ```
 
-Edges từ lane xuống children dùng cùng pattern `V → H → V` như parent-child edges hiện tại.
+Với 1 hôn nhân (trường hợp phổ biến): `laneX = parentX`, không rẽ, behavior giống như hiện tại.
 
-### State quản lý collapse
+### Collapse / Expand — toggle từ PersonPanel
 
-```ts
-// Trong FamilyTree component state:
-expandedMarriages: Set<string>  // key = familyUnitId
-// Mặc định: chỉ có familyUnit với marriageOrder=1 trong set
+Hôn nhân phụ có thể collapse để giảm rộng cây:
 
-function toggleMarriage(familyId: string) {
-  setExpandedMarriages(prev => {
-    const next = new Set(prev)
-    next.has(familyId) ? next.delete(familyId) : next.add(familyId)
-    return next
-  })
-}
+- **Expanded**: spouse node hiển thị bình thường, children render dưới theo layout D3
+- **Collapsed**: spouse node thu lại thành chip nhỏ `[Tên · +N con ▶]` cùng generation row, children không chiếm layout
+
+Toggle được kích hoạt từ **PersonPanel** (không phải click trực tiếp lên cây):
+
+```
+PersonPanel — Nguyễn Văn Đức
+─────────────────────────────
+Hôn nhân 1   [Trần Thị Lan]  ●  [▼ đang hiện]   3 con
+Hôn nhân 2   [Lê Thị Hoa]       [▶ ẩn]           2 con
+Hôn nhân 3   [Phạm Thị Mai]     [▶ ẩn]           1 con
+─────────────────────────────
+[+ Thêm hôn nhân]
 ```
 
-D3 layout chỉ tính vị trí cho children của các family đang expanded. Collapsed family chỉ render spouse row + badge, không chiếm không gian layout.
+Click `▼/▶` trong panel → toggle `expandedMarriages` state → cây re-layout.
 
-### Node thay đổi tối thiểu
+### State
 
-Không đổi FamilyNode component. Chỉ thêm:
-1. **SpouseRow** component nhỏ — render 1 hàng vợ/chồng phụ (collapsed state)
-2. **tieredEdgePath** function — thay edge drawing cho node có `families.length > 1`
-3. **expandedMarriages** state trong FamilyTree
+```ts
+expandedMarriages: Set<string>  // familyUnitId — chỉ hôn nhân #1 mặc định
+```
 
-Node bình thường (`families.length === 1`): không thay đổi gì.
+D3 `buildTree` chỉ đưa vào layout children của family đang trong set. Collapsed family vẫn render spouse chip nhưng không tính `size` cho D3 separation.
+
+### Không thay đổi
+
+- `FamilyNode` component: không đổi
+- Edge cho hôn nhân đơn: không đổi
+- Generation alignment: tất cả spouse ở cùng `y` như cũ
 
 ---
 
@@ -236,69 +225,60 @@ const isHalfSibling = vPF?.personId === tPF?.personId  // cùng cha khác mẹ
 
 ### Labels mới trong `buildLabel`
 
+Chỉ track quan hệ huyết thống trực hệ:
+
 | Loại | Label | selfLabel |
 |------|-------|-----------|
 | Cùng cha cùng mẹ | `Anh/Chị/Em` (giữ nguyên) | `Em/Anh/Chị` |
 | Cùng cha khác mẹ | `Anh/Chị/Em cùng cha` | `Em/Anh/Chị cùng cha` |
 | Cùng mẹ khác cha | `Anh/Chị/Em cùng mẹ` | `Em/Anh/Chị cùng mẹ` |
-| Không có huyết thống | `Anh/Chị/Em kế` | — (không track kinship) |
+
+Không track "anh/em kế" (con riêng của vợ/chồng mới) — nằm ngoài huyết thống trực hệ.
 
 ### Vợ/chồng của cha gọi là gì?
 
-Không có công thức chung — phụ thuộc gia đình và thời đại:
-- Con vợ cả gọi vợ lẽ: "Dì", "Mẹ Hai", "Bà Hai"
-- Con vợ lẽ gọi vợ cả: "Mẹ Cả", "Mẹ Lớn", "Bà Lớn"
-
-→ Để vào **custom xưng hô (K6)**, không hard-code. `applyInLaw` chỉ trả về label mặc định "Vợ cha" nếu không có override.
+Không hard-code — xưng hô phụ thuộc gia đình và thời đại. Để vào **custom xưng hô (K6)**. `applyInLaw` trả về "Vợ cha" / "Chồng mẹ" làm fallback nếu không có override.
 
 ---
 
 ## UI Changes
 
-### PersonForm — Tab "Gia đình"
+### PersonPanel — mở rộng (không tạo tab mới)
 
-Hiện tại: 1 ô "Vợ/chồng" (read-only, link sang FamilyUnit).
-
-Mới:
-
-```
-Tab: Gia đình
-──────────────────────────────────────
-Hôn nhân #1  [Vợ cả · đã mất]          ← click để xem/sửa FamilyUnit
-  Con: An, Bình, Cường
-
-[+ Thêm hôn nhân]
-
-Hôn nhân #2  [Vợ lẽ · còn sống]
-  Con: Dũng
-
-Vai trò trong hôn nhân: [Vợ cả ▼]
-```
-
-### PersonPanel
-
-Hiển thị tóm tắt:
+Khi người được chọn có nhiều hôn nhân, PersonPanel hiển thị thêm section "Hôn nhân" thay thế dòng vợ/chồng đơn hiện tại:
 
 ```
 Nguyễn Văn Đức
-─────────────────
-Vợ cả:  Trần Thị Lan (đã mất)
-Vợ hai: Lê Thị Hoa
-─────────────────
-12 người con
+────────────────────────────────────
+Sinh: 1820  Mất: 1895
+
+Hôn nhân
+  ① Trần Thị Lan   (Vợ cả · đã mất)  3 con  [▼]
+  ② Lê Thị Hoa    (Vợ lẽ · ly hôn)  2 con  [▶]
+  ③ Phạm Thị Mai  (Vợ ba)            1 con  [▶]
+
+[+ Thêm hôn nhân]
+────────────────────────────────────
 ```
 
-### FamilyForm (mới hoặc mở rộng)
+- `[▼]` / `[▶]` toggle collapse/expand trực tiếp trên cây
+- Click tên vợ/chồng → mở PersonPanel của người đó
+- `[+ Thêm hôn nhân]` → tạo FamilyUnit mới với personId = người hiện tại
 
-Khi click vào 1 FamilyUnit cụ thể trong node:
-- Sửa `marriageStatus`, `marriageRole`, `marriageOrder`
-- Thêm/xóa con trong gia đình đó
-- Sửa thông tin vợ/chồng
+Với hôn nhân đơn: section "Hôn nhân" không thay đổi so với hiện tại (chỉ hiện 1 dòng vợ/chồng, không có toggle).
 
-### Node trên cây — badge
+### FamilyUnit form — inline trong PersonPanel
 
-Node bình thường: không đổi.
-Node có nhiều hôn nhân: hiển thị số `×N` nhỏ góc phải node (ví dụ `×4` nếu có 4 vợ).
+Khi click vào 1 hôn nhân → mở rộng inline (accordion):
+
+```
+  ① Trần Thị Lan   (Vợ cả · đã mất)  [▼]
+     Vai trò:   [Vợ cả ▼]
+     Tình trạng: [Đã mất ▼]
+     Con:        An, Bình, Cường  [+ thêm con]
+```
+
+Không cần form riêng — tất cả trong panel.
 
 ---
 
@@ -330,9 +310,8 @@ Không breaking — file cũ vẫn load và hiển thị bình thường.
 | `document.ts` | `normalizeFamilyUnit` trong decode, cập nhật `emptyDocument` |
 | `kinship.ts` | `buildIndex`: `familiesByPerson`; `buildLabel`: thêm half-sibling logic |
 | `mutations.ts` | `addFamilyUnit`, `setSpouse`: cho phép personId đã có family |
-| `FamilyTree.tsx` | `buildTree`: gộp multi-family thành 1 TreeNode; render MultiFamily node |
-| `components/PersonForm.tsx` | Tab "Gia đình" với danh sách hôn nhân |
-| `components/PersonPanel.tsx` | Hiển thị multi-spouse summary |
+| `FamilyTree.tsx` | `buildTree`: multi-family node; `marriageEdgePath` 90° + offset lane |
+| `components/PersonPanel.tsx` | Section "Hôn nhân" với toggle collapse/expand + inline accordion |
 
 ---
 
@@ -350,12 +329,10 @@ Không breaking — file cũ vẫn load và hiển thị bình thường.
 - Tests đầy đủ
 
 ### Phase 3 — UI tree layout
-- `tieredEdgePath`: đường nối 90° với lanes xếp tầng
-- `SpouseRow`: component hàng vợ/chồng phụ (collapsed state + badge +N con)
-- `expandedMarriages` state + toggle handler
-- PersonPanel multi-spouse summary
-- PersonForm tab Gia đình + "Thêm hôn nhân"
-- FamilyForm sửa marriageStatus/Role
+- `marriageEdgePath`: đường nối 90° với `laneX` offset theo `marriageOrder`
+- `expandedMarriages` state + toggle
+- Spouse chip (collapsed state) — cùng generation row, không đẩy xuống thế hệ khác
+- PersonPanel: section "Hôn nhân" + accordion inline + `[+ Thêm hôn nhân]`
 
 ### Phase 4 — Export
 - PDF export: thêm chú thích vợ/chồng theo số
@@ -365,7 +342,6 @@ Không breaking — file cũ vẫn load và hiển thị bình thường.
 
 ## Câu hỏi mở
 
-1. **Màu sắc phân biệt nhánh**: Dùng màu khác nhau cho các lane của từng vợ trên cây không? Hay chỉ dùng số thứ tự?
-2. **"Anh/em kế" (bố dượng/mẹ kế)**: Có track không hay để người dùng tự ghi chú?
-3. **Import dữ liệu GEDCOM**: Format chuẩn genealogy có hỗ trợ đa thê — có cần xét tới không?
-4. **Default expand**: Có nên expand tất cả hôn nhân khi mới mở file (thay vì chỉ hôn nhân đầu) không?
+1. **Màu sắc phân biệt nhánh**: Dùng stroke-color khác nhau cho edge của từng hôn nhân không? Mỗi marriage 1 màu → con của từng vợ dễ nhận ra. Ưu điểm: trực quan. Nhược điểm: dễ rối nếu nhiều màu, và ngầm tạo cảm giác phân biệt. Phương án trung lập: dùng dash pattern khác nhau thay vì màu.
+2. **Import dữ liệu GEDCOM**: Format chuẩn genealogy có hỗ trợ đa thê — có cần xét tới không?
+3. **Số hôn nhân tối đa gợi ý**: Giới hạn mềm trong UI (cảnh báo nếu > 5)? Hay để tự do hoàn toàn?

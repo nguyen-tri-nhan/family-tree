@@ -11,7 +11,7 @@ import { validateDocument } from './utils/validateTree'
 import { ClanForm }       from './components/ClanForm'
 import { ExportDialog }   from './components/ExportDialog'
 import { useStorage }     from './storage'
-import { deletePerson }   from './mutations'
+import { deletePerson, addMarriage } from './mutations'
 import type { FtreeDocument } from './types'
 
 type FormMode =
@@ -51,9 +51,10 @@ export function App({
   const [highlight,      setHighlight]  = useState<string | undefined>()
   const [compareMode,    setCompareMode] = useState<CompareMode>({ active: false })
   const [kinshipPair,    setKinshipPair] = useState<{ a: string; b: string } | null>(null)
-  const [showClanForm,   setShowClanForm]  = useState(false)
-  const [showIssues,     setShowIssues]    = useState(false)
-  const [showExport,     setShowExport]    = useState(false)
+  const [showClanForm,       setShowClanForm]       = useState(false)
+  const [showIssues,         setShowIssues]         = useState(false)
+  const [showExport,         setShowExport]         = useState(false)
+  const [expandedMarriages,  setExpandedMarriages]  = useState<Set<string>>(new Set())
 
   // ── Theme toggle ──────────────────────────────────────────────
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -168,6 +169,23 @@ export function App({
     setFormMode({ type: 'add-spouse', familyId })
   }, [])
 
+  const handleAddMarriage = useCallback((personId: string) => {
+    if (!doc) return
+    const { doc: newDoc, familyId } = addMarriage(doc, personId)
+    setDoc(newDoc)
+    setSaved(false)
+    setFormMode({ type: 'add-spouse', familyId })
+    setSelected(null)
+  }, [doc])
+
+  const handleToggleMarriage = useCallback((familyId: string) => {
+    setExpandedMarriages(prev => {
+      const next = new Set(prev)
+      next.has(familyId) ? next.delete(familyId) : next.add(familyId)
+      return next
+    })
+  }, [])
+
   const issues          = useMemo(() => doc ? validateDocument(doc) : [], [doc])
   const issuePersonIds  = useMemo(() => new Set(issues.flatMap(i => i.personIds)), [issues])
   const errorCount      = issues.filter(i => i.severity === 'error').length
@@ -268,6 +286,9 @@ export function App({
           onPersonClick={handlePersonClick}
           onAddChild={handleAddChild}
           onAddSpouse={handleAddSpouse}
+          onAddMarriage={handleAddMarriage}
+          expandedMarriages={expandedMarriages}
+          onToggleMarriage={handleToggleMarriage}
           darkMode={theme === 'dark'}
         />
         {doc.families.length === 0 && (
@@ -290,6 +311,9 @@ export function App({
           onAddParent={childPersonId  => { setFormMode({ type: 'add-parent', childPersonId }); setSelected(null) }}
           onAddChild={parentFamilyId => { setFormMode({ type: 'add-child', parentFamilyId }); setSelected(null) }}
           onAddSpouse={familyId      => { setFormMode({ type: 'add-spouse', familyId }); setSelected(null) }}
+          onAddMarriage={handleAddMarriage}
+          expandedMarriages={expandedMarriages}
+          onToggleMarriage={handleToggleMarriage}
           onCompare={() => {
             setCompareMode({ active: true, firstPersonId: selectedPerson })
             setSelected(null)
