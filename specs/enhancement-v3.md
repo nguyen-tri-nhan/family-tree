@@ -23,70 +23,118 @@ Tập hợp các tính năng đã được mention nhưng chưa implement, từ 
 
 ---
 
-## §1. Custom xưng hô per-pair
+## §1. Custom xưng hô
+
+Hai cấp độ: **per-pair** (1 cặp người cụ thể) và **clan-wide rule** (áp dụng cho cả dòng họ theo loại quan hệ).
 
 ### Vấn đề
 
-Xưng hô tự động đúng cho đại đa số, nhưng có trường hợp gia đình muốn dùng cách gọi riêng (ví dụ: gọi ông nội là "Ông Ba" theo truyền thống, hoặc family có gốc Hoa gọi khác, hoặc bố dượng/mẹ kế muốn gọi theo tên khác).
+- Per-pair: gia đình muốn gọi tên riêng cho 1 người cụ thể (ví dụ: bố dượng gọi là "Bố Tâm")
+- Clan-wide: cả dòng họ dùng cách gọi khác với mặc định — ví dụ gốc Hoa gọi "Nội" thay "Ông nội", hoặc muốn đổi tất cả genDelta=3 thành "Ông cố / Bà cố" thay vì "Cụ"
 
-### Thiết kế
-
-Thêm field `customKinship?: Record<string, string>` vào `Person`:
+### Data model
 
 ```ts
-interface Person {
-  // ...existing fields...
-  customKinship?: Record<string, string>  // { [viewerId]: "cách gọi tuỳ chỉnh" }
+// Per-pair override — ưu tiên cao nhất
+interface KinshipOverride {
+  viewerId:   string
+  targetId:   string
+  label:      string
+  selfLabel?: string
+}
+
+// Clan-wide rule — match theo điều kiện, áp dụng cho mọi cặp thoả
+interface KinshipRule {
+  id:          string
+  // Điều kiện match (tất cả phải thoả — AND logic):
+  genDelta?:   number           // ví dụ: 3 → chỉ áp dụng cho genDelta=3
+  baseLabel?:  string           // match label tự động hiện tại (ví dụ: 'Cụ')
+  viaMother?:  boolean          // nội (false) hay ngoại (true)
+  gender?:     'male' | 'female'
+  // Override:
+  label:       string           // label mới
+  selfLabel?:  string
+}
+
+interface FtreeDocument {
+  // ...
+  kinshipOverrides?: KinshipOverride[]
+  kinshipRules?:     KinshipRule[]
 }
 ```
 
-Hoặc tách thành một collection riêng ở cấp document:
+### Thứ tự ưu tiên trong `computeKinship`
 
-```ts
-interface FtreeDocument {
-  // ...
-  kinshipOverrides?: Array<{
-    viewerId:  string  // người xem
-    targetId:  string  // người được gọi
-    label:     string  // cách gọi tuỳ chỉnh
-    selfLabel: string  // target gọi lại viewer là gì
-  }>
-}
+```
+1. kinshipOverrides  — per-pair (exact match viewerId + targetId)
+2. kinshipRules      — clan-wide (match theo điều kiện)
+3. Auto-computed     — kết quả tính toán hiện tại
+```
+
+### Ví dụ clan-wide rule
+
+```jsonc
+// Đổi tất cả "Cụ" (genDelta=3, male) → "Ông cố"
+{ "id": "r1", "genDelta": 3, "gender": "male",   "label": "Ông cố" }
+{ "id": "r2", "genDelta": 3, "gender": "female", "label": "Bà cố"  }
+
+// Dòng họ gốc Hoa: đổi Ông nội → "Nội"
+{ "id": "r3", "baseLabel": "Ông nội", "label": "Nội" }
 ```
 
 ### UI
 
-- Trong `KinshipDrawer`, thêm nút "Tuỳ chỉnh" bên cạnh label
-- Hoặc trong `PersonPanel`, tab "Xưng hô" với danh sách override
-
-### Logic
-
-Trong `computeKinship`, kiểm tra `kinshipOverrides` trước; nếu có override thì return trực tiếp, bỏ qua tính toán tự động.
+- **KinshipDrawer**: nút ✏ bên cạnh label → inline edit → lưu thành per-pair override
+- **ClanForm** (⚙ settings): tab "Xưng hô" → quản lý danh sách `kinshipRules` (thêm/sửa/xoá)
+- Rules hiển thị dạng bảng: Điều kiện | Label mới | Xoá
 
 ---
 
-## §2. Tag Thủy Tổ / Khai Tổ
+## §2. Tag vai trò đặc biệt
 
-### Vấn đề
+### Các role
 
-Root node trong data không nhất thiết là Thủy Tổ thực sự (có thể chỉ là ông cao nhất *đã biết*). Nhãn "Thủy Tổ" / "Khai Tổ" mang ý nghĩa trang nghiêm, không nên tự động gán.
+| Role | Ý nghĩa | Ghi chú |
+|------|---------|---------|
+| `thuytoc` | Thủy Tổ | Tổ tiên khai lập dòng họ — trang nghiêm, không tự động gán |
+| `khaito` | Khai Tổ | Người đầu tiên đến vùng đất mới lập nghiệp |
+| `truongboi` | Trưởng Bối | Người cao tuổi nhất / bậc trưởng thượng đang còn sống |
+| `truonghọ` | Trưởng Họ | Đại diện toàn bộ dòng họ (họ = surname group) |
+| `truongtoc` | Trưởng Tộc | Đại diện một chi/ngành trong dòng họ |
+
+**Phân biệt Trưởng Họ vs Trưởng Tộc**: Trưởng Họ quản lý toàn bộ dòng họ (ví dụ: họ Nguyễn ở một làng), Trưởng Tộc quản lý một ngành/chi cụ thể. Một cây gia phả có thể có 1 Trưởng Họ và nhiều Trưởng Tộc.
 
 ### Thiết kế
 
-Thêm field `role?: 'thuytoc' | 'khaito' | 'truongboi'` vào `Person` (hoặc tag array).
-
 ```ts
+type PersonRole = 'thuytoc' | 'khaito' | 'truongboi' | 'truonghọ' | 'truongtoc'
+
 interface Person {
   // ...
-  role?: 'thuytoc' | 'khaito' | 'truongboi'
+  roles?: PersonRole[]   // array để 1 người có thể giữ nhiều vai trò
 }
 ```
 
-### UI
+Dùng `roles[]` thay vì `role?` đơn lẻ vì một người có thể vừa là Trưởng Họ vừa là Trưởng Tộc ngành trưởng.
 
-- Trong `PersonForm`, dropdown "Vai trò đặc biệt": Không có / Thủy Tổ / Khai Tổ / Trưởng Bối
-- Trong node trên cây: badge/icon nhỏ đặc biệt (ví dụ: ☆ hoặc màu viền khác)
-- Trong `PersonPanel`: hiển thị nhãn nổi bật
+### UI — node trên cây
+
+Mỗi role có badge icon riêng, hiển thị góc trên-phải của node:
+
+| Role | Badge |
+|------|-------|
+| Thủy Tổ / Khai Tổ | ★ (vàng) |
+| Trưởng Bối | 長 (xanh đậm) |
+| Trưởng Họ | 族 (đỏ) |
+| Trưởng Tộc | 宗 (cam) |
+
+### UI — PersonForm
+
+Dropdown multi-select "Vai trò đặc biệt" trong PersonForm (hoặc tab riêng nếu form dài).
+
+### UI — PersonPanel
+
+Hiển thị chip/badge tên role nổi bật bên dưới tên người.
 
 ---
 
@@ -289,48 +337,75 @@ Chỉ ảnh hưởng `WebStorageAdapter`. ElectronAdapter đã có recent files 
 
 ---
 
-## §7. Highlight path khi node bị collapse
+## §7. Collapsed node — hai vấn đề
 
-### Vấn đề
+### §7a. Highlight path bị đứt khi node collapse
 
-Khi `KinshipDrawer` hiển thị path giữa hai người, nếu một node trong path đang bị collapse (ẩn), `posRef.current` không có vị trí của node đó → path highlight bị skip silently, người dùng thấy đường đứt quãng hoặc không có gì.
+**Vấn đề**: `posRef.current` không có vị trí node đang bị ẩn → path vẽ lên cây bị thiếu đoạn.
 
-### Giải pháp — Option A (auto-expand)
-
-Khi `highlightPath` thay đổi, nếu có node trong path không có trong `posRef`, tự động expand các ancestor cần thiết để path hiển thị đủ.
+**Giải pháp**: Khi `highlightPath` thay đổi, auto-expand các family cần thiết:
 
 ```ts
 useEffect(() => {
   if (!highlightPath) return
   const missing = highlightPath.filter(id => !posRef.current.has(id))
-  if (missing.length > 0) {
-    // find familyIds to expand and remove from collapsed set
-    setCollapsed(prev => { /* ... */ })
-  }
+  if (missing.length === 0) return
+  // Với mỗi missing id: tìm familyId chứa nó (childToParentFamily hoặc familyByPerson)
+  // rồi remove khỏi collapsed set
+  setCollapsed(prev => {
+    const next = new Set(prev)
+    missing.forEach(id => {
+      const pf = idx.childToParentFamily.get(id)
+      if (pf) next.delete(pf.id)
+    })
+    return next
+  })
 }, [highlightPath])
 ```
 
-### Giải pháp — Option B (toast warning)
+### §7b. Không chọn được node đang bị collapse để so sánh quan hệ
 
-Hiển thị toast: "Một số người trong đường kết nối đang bị ẩn. Mở rộng cây để xem đầy đủ."
+**Vấn đề**: Compare mode yêu cầu click trực tiếp lên node. Node đang ẩn dưới badge `+N` → không click được.
 
-### Khuyến nghị
+**Giải pháp**: Cho phép chọn người thứ 2 qua **SearchBar** thay vì chỉ click tree.
 
-Option A UX tốt hơn nhưng cần logic tìm ancestor families để expand.
+Hai thay đổi nhỏ:
+1. Khi đang ở compare mode, SearchBar hiển thị placeholder *"Tìm người để so sánh..."* thay vì placeholder thông thường
+2. Khi chọn kết quả từ SearchBar trong compare mode → trigger `handlePersonClick(id)` như thể đã click node đó trên cây (sẽ mở KinshipDrawer) — không cần expand cây
+
+```ts
+// Trong App.tsx:
+<SearchBar
+  doc={doc}
+  placeholder={compareMode.active ? 'Tìm người để so sánh…' : undefined}
+  onSelect={id => {
+    if (compareMode.active) {
+      handlePersonClick(id)   // reuse existing logic
+    } else {
+      setHighlight(id)
+    }
+  }}
+/>
+```
+
+Không cần auto-expand; người dùng thấy kết quả kinship mà không cần tree phải mở rộng.
 
 ---
 
-## §8. UI warning giới hạn 200 người
-
-### Vấn đề
-
-Giới hạn 200 người (freemium plan) đã được check khi save nhưng không có UI warning proactive khi gần đến giới hạn.
+## §8. UI warning giới hạn 200 người ✅ Approach confirmed
 
 ### Giải pháp
 
-- Khi `persons.length >= 180`: hiển thị warning banner hoặc badge trên toolbar
-- Khi `persons.length >= 200`: disable nút "Thêm người", hiển thị upgrade prompt
-- Trong `IssuePanel`: thêm loại issue `limit-approaching`
+- `persons.length >= 180` → badge cam trên toolbar: *"180/200 người"*
+- `persons.length >= 200` → badge đỏ + disable các nút "Thêm người/Thêm con/Thêm vợ/chồng" trong PersonPanel và PersonForm
+- Tooltip khi hover badge: *"Bản miễn phí giới hạn 200 người. Liên hệ để nâng cấp."*
+- Không cần `IssuePanel` entry (không phải data issue, là giới hạn plan)
+
+### Files cần sửa
+
+- `App.tsx` — tính `personCount`, truyền xuống header badge
+- `PersonPanel.tsx` — disable Add buttons khi `atLimit`
+- `PersonForm.tsx` — guard submit khi `atLimit`
 
 ---
 
