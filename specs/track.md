@@ -1,6 +1,6 @@
 # Track — Tình trạng triển khai
 
-Cập nhật lần cuối: 2026-06-10
+Cập nhật lần cuối: 2026-06-10 (rev 2)
 
 ---
 
@@ -18,6 +18,16 @@ Cập nhật lần cuối: 2026-06-10
 | M8 | Xưng hô / Kinship v1 | ✅ | ✅ | computeKinship, KinshipDrawer, compare mode |
 | M9 | Kinship bug fixes + path UI | ✅ | ✅ | xem chi tiết bên dưới |
 | M10 | Kinship §2a/2b — nội/ngoại + Cậu/Dì | ✅ | ✅ | xem chi tiết bên dưới |
+| M11 | Female personId bug fix + demo 7 đời | ✅ | ✅ | xem chi tiết bên dưới |
+| M12 | About page + Kinship §2d/§3 + path fix | ✅ | ✅ | xem chi tiết bên dưới |
+| **Kế hoạch** | | | | |
+| M13 | Điều khoản sử dụng (A1) | 🔲 | 🔲 | TermsModal + /#/terms |
+| M14 | Warning 200 người + Recent files web (U3/U4) | 🔲 | 🔲 | — |
+| M15 | Collapsed node UX — highlight + SearchBar (U1/U2) | 🔲 | 🔲 | — |
+| M16 | Tag vai trò đặc biệt (D1) | 🔲 | 🔲 | Thủy Tổ, Trưởng Họ... |
+| M17 | Custom xưng hô per-pair + clan-wide (K6) | 🔲 | 🔲 | — |
+| M18 | Quiz trắc nghiệm xưng hô (A2) | 🔲 | 🔲 | — |
+| M19 | Ảnh cá nhân — remote URL (D2) | 🔲 | 🔲 | — |
 
 ---
 
@@ -174,11 +184,11 @@ const next = depth === 0
 ```
 Áp dụng cho cả `personId` lẫn `spouseId`. Tại depth>0, kế thừa viaMother như cũ.
 
-**Test cases bổ sung (5 tests, tổng 89)**:
+**Test cases bổ sung (5 tests)**:
 - `p15 → p7: Mẹ` (female personId là mẹ của viewer)
 - `p15 → p14: Bố` (male spouseId là bố của viewer)
 - `p15 → p4: Ông ngoại` (trước fix ra "Ông nội" — core bug)
-- `p15 → p1: Cụ` (3 levels lên qua female personId chain)
+- `p15 → p1: Cụ` → sau M12 đổi thành `Ông Cụ ngoại`
 - `p15 → p5: Cậu Út` (genDelta=1, isMaternal=true)
 
 **Fixtures mở rộng**: Thêm `p14` (chồng p7), `p15` (con p7/p14), `f6` (personId=p7 female).
@@ -225,14 +235,82 @@ const next = depth === 0
 
 ---
 
-## Chưa làm (enhancement-v2.md)
+---
 
-| Mục | Section | Độ ưu tiên |
-|-----|---------|------------|
-| Custom xưng hô per-pair | §3 → v3 | — |
-| Quan hệ xuyên nhánh phức tạp (Case 2: họ hàng xa) | §2d | Thấp |
-| Tag "Thủy Tổ / Khai Tổ" cho node root | v-next | Thấp |
-| **About / Tác giả** — modal hoặc hash-routed page, ghi tên + contact tác giả; dùng hash routing nếu muốn URL thực sự (`/#/about`) để hoạt động cả web lẫn Electron; nếu chỉ cần modal thì không cần thêm dependency | — | Thấp |
+## M12 — About page + Kinship §2d/§3 + path fix (2026-06-10)
+
+### About page (§4 ✅)
+
+- Hash routing (`createHashRouter`) — hoạt động đồng nhất web và Electron (`file://`)
+- `Router.tsx`: `AppRouter` + `PropsCtx` để pass `AppProps` qua RouterProvider
+- `AboutPage.tsx`: card layout, ContactRow, link Website/Email/LinkedIn; không có GitHub (closed-source)
+- `App.tsx`: thêm `onAbout?: () => void` prop + nút `ⓘ` header
+
+### Kinship §3 — Ông Cụ/Bà Cụ + Ông Cố/Bà Cố nội/ngoại (K5 ✅)
+
+- `genDelta=3`: phân biệt giới tính + nội/ngoại
+  - Bắc: `Ông Cụ nội` / `Ông Cụ ngoại` / `Bà Cụ nội` / `Bà Cụ ngoại`
+  - Nam: `Ông Cố nội` / `Ông Cố ngoại` / `Bà Cố nội` / `Bà Cố ngoại`
+- `genDelta=-3` selfLabel: `Ông Cụ`/`Bà Cụ` (Bắc) / `Ông Cố`/`Bà Cố` (Nam) theo giới tính viewer
+- `applyInLaw` tự xử lý đúng: base `Ông`/`Bà` → swap nhờ mapping sẵn
+
+### Kinship §2d — Case 1 & 2 (K3/K4 ✅)
+
+**Case 1 — vợ/chồng anh em họ**:
+- `Anh họ` → vợ → `Chị (dâu) họ`; `Chị họ` → chồng → `Anh (rể) họ`
+- selfLabel "Anh họ" giờ trả về `Em họ` (không phải `Em` — sửa lỗi ngữ nghĩa)
+
+**Case 2 — họ hàng xa chi tiết**:
+- Thêm `minLcaDepth` parameter vào `buildLabel`
+- First cousins (depth 2): `Anh họ` / `Em họ` (như cũ)
+- Second cousins (depth 3): `Anh họ 2 đời` / `Em họ 2 đời`
+- Third cousins+: `Anh họ 3 đời`...
+
+### Fix path highlight cho in-law (✅)
+
+**Bug**: `rawPath[last] = targetId` thay thế blood relative → edge blood→in-law bị mất.
+
+**Fix**: `rawPath.push(targetId)` — giữ blood relative trong path, append in-law sau.
+
+Ví dụ `p6 → p9` (vợ của Anh họ p5):
+- Trước: `[p6, p4, p1, p3, p9]` — cạnh p3→p9 không tồn tại trong tree
+- Sau: `[p6, p4, p1, p3, p5, p9]` — cạnh p5→p9 là marriage edge có sẵn trong edgeMap ✓
+
+### dâu/rể in parentheses (✅)
+
+Toàn bộ in-law label dùng ngoặc: `Con (dâu)`, `Con (rể)`, `Cháu (dâu)`, `Cháu (rể)`, `Chị (dâu)`, `Anh (rể)`, v.v. Suffix ` họ` / ` 2 đời` vẫn nối sau: `Chị (dâu) họ`, `Chị (dâu) họ 2 đời`.
+
+### Tests — `kinship.test.ts`
+
+69 tests pass. Thêm:
+- K5: 4 cases (Ông Cụ nội/ngoại, Ông Cố nội, Chắt selfLabel)
+- §2d Case1: 3 cases (Chị (dâu) họ, fallback Em họ)
+- §2d Case2: 4 cases (second cousin fixture + selfLabel)
+- path in-law: 3 cases (blood stays in path, in-law appended)
+
+---
+
+## Kế hoạch chi tiết — Enhancement v3 (non-cloud)
+
+Tham chiếu: [backlog.md](backlog.md), [enhancement-v3.md](enhancement-v3.md)
+
+| Milestone | ID | Nội dung | Spec | Ghi chú |
+|-----------|----|-----------|----|---------|
+| **M13** | A1 | Điều khoản sử dụng | terms.md | TermsModal (first-launch) + TermsPage (`/#/terms`) + link từ AboutPage |
+| **M14** | U3 | UI warning 200 người | v3 §8 | Badge cam/đỏ trên toolbar + disable Add buttons |
+| **M14** | U4 | Recent files trên web | v3 §6 | File System Access API + IndexedDB serialize handle |
+| **M15** | U1 | Highlight path khi node collapse (auto-expand) | v3 §7a | `highlightPath` → tìm missing nodes → remove khỏi collapsed set |
+| **M15** | U2 | Chọn node collapse qua SearchBar | v3 §7b | SearchBar trong compare mode → `handlePersonClick(id)` |
+| **M16** | D1 | Tag vai trò đặc biệt | v3 §2 | `roles?: PersonRole[]` trên Person; badge node; multi-select PersonForm |
+| **M17** | K6 | Custom xưng hô per-pair + clan-wide | v3 §1 | `kinshipOverrides[]` + `kinshipRules[]` trên FtreeDocument; UI KinshipDrawer + ClanForm |
+| **M18** | A2 | Quiz trắc nghiệm xưng hô | quiz.md | `quizEngine.ts` + `QuizPanel.tsx`; highlight target trên cây |
+| **M19** | D2 | Ảnh cá nhân (remote URL) | v3 §5 | `avatarUrl?` trên Person; `<image>` SVG clip-path tròn trong node |
+
+**Deferred (non-cloud)**:
+- D3: Multi-root / nhiều dòng họ — lớn, sau khi có feedback nhiều hơn
+
+**Cloud / Phase 2** (cần backend — không trong scope hiện tại):
+- C1: Ảnh cloud upload; C2: Cross-clan link → xem [backlog.md §Cloud](backlog.md)
 
 ---
 
@@ -240,9 +318,10 @@ const next = depth === 0
 
 | Vấn đề | Trạng thái |
 |--------|-----------|
-| Tối đa 200 người (freemium) | Check khi save — chưa implement UI warning |
-| Ảnh cá nhân | Bỏ qua v1 — v2 dùng cloud URL |
-| Multi-root (nhiều dòng họ) | Chỉ render root đầu tiên — xem `FamilyTree.tsx:buildTree()` |
-| Cross-clan link | Dành cho Phase 2 cloud — xem `plan.md` |
-| Recent files trên web | Trả về `[]` — File System Access API để v2 |
-| Highlight path khi node bị collapse | Node không có trong posRef → skip silently |
+| Tối đa 200 người (freemium) | Check khi save — UI warning planned (M14/U3) |
+| Ảnh cá nhân | Remote URL planned (M19/D2); cloud upload → backlog C1 |
+| Multi-root (nhiều dòng họ) | Chỉ render root đầu tiên — deferred (D3) |
+| Cross-clan link | Cloud Phase 2 — backlog C2 |
+| Recent files trên web | Trả về `[]` — File System Access API planned (M14/U4) |
+| Highlight path khi node bị collapse | Node không có trong posRef → skip silently — planned (M15/U1) |
+| Em rể họ (chồng của Em họ gái) | applyInLaw không biết blood gender từ label — deferred |

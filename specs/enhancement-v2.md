@@ -3,10 +3,10 @@
 | § | Tên | Trạng thái |
 |---|---|---|
 | 1 | Export sạch | ✅ Done |
-| 2a | Phân biệt nội / ngoại | 🔲 Planned — xem bên dưới |
-| 2b | Cậu / Dì phía mẹ | 🔲 Planned — phụ thuộc 2a |
+| 2a | Phân biệt nội / ngoại | ✅ Done |
+| 2b | Cậu / Dì phía mẹ | ✅ Done |
 | 2c | Ordinal cho Ông/Bà ngang hệ | ✅ Done |
-| 2d | Quan hệ xuyên nhánh phức tạp | 🔲 Planned — xem bên dưới |
+| 2d | Quan hệ xuyên nhánh phức tạp | ✅ Done (Case1: vợ/chồng anh em họ; Case2: họ hàng xa đời) |
 | 2e | Chỉ số đời Cụ/Kỵ/Sơ | ✅ Done (hiển thị trong KinshipDrawer) |
 | 2f | Con gọi vợ/chồng của cha/mẹ | ✅ Done |
 | 2g | Con dâu/rể dùng kinship chồng/vợ | ✅ Done |
