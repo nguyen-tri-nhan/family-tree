@@ -2,27 +2,32 @@ import type { FtreeDocument, Person, PartialDate } from '../types'
 import { buildIndex } from '../types'
 
 interface PersonPanelProps {
-  personId:     string
-  doc:          FtreeDocument
-  onClose:      () => void
-  onEdit:       (personId: string) => void
-  onDelete:     (personId: string) => void
-  onAddChild:   (parentFamilyId: string) => void
-  onAddSpouse:  (familyId: string) => void
-  onAddParent?: (childPersonId: string) => void
-  onCompare?:   () => void
+  personId:          string
+  doc:               FtreeDocument
+  onClose:           () => void
+  onEdit:            (personId: string) => void
+  onDelete:          (personId: string) => void
+  onAddChild:        (parentFamilyId: string) => void
+  onAddSpouse:       (familyId: string) => void
+  onAddParent?:      (childPersonId: string) => void
+  onAddMarriage?:    (personId: string) => void
+  onCompare?:        () => void
+  expandedMarriages?: Set<string>
+  onToggleMarriage?:  (familyId: string) => void
 }
 
 export function PersonPanel({
-  personId, doc, onClose, onEdit, onDelete, onAddChild, onAddSpouse, onAddParent, onCompare,
+  personId, doc, onClose, onEdit, onDelete, onAddChild, onAddSpouse,
+  onAddParent, onAddMarriage, onCompare, expandedMarriages, onToggleMarriage,
 }: PersonPanelProps) {
-  const { personMap, familyByPerson, childToParentFamily } = buildIndex(doc)
+  const { personMap, familiesByPerson, childToParentFamily, familyBySpouse } = buildIndex(doc)
   const person = personMap.get(personId)
   if (!person) return null
 
-  const family      = familyByPerson.get(personId)
-  const hasSpouse   = !!family?.spouseId
+  const allFamilies = familiesByPerson.get(personId) ?? []
+  const family      = allFamilies[0]                       // primary family
   const hasParent   = childToParentFamily.has(personId)
+  const isSpouse    = !familiesByPerson.has(personId) && familyBySpouse.has(personId)
 
   return (
     <div style={panel}>
@@ -127,24 +132,62 @@ export function PersonPanel({
         </Section>
       )}
 
+      {/* Hôn nhân */}
+      {allFamilies.length > 0 && (
+        <Section title="Hôn nhân">
+          {allFamilies.map((f, idx) => {
+            const spouse     = f.spouseId ? personMap.get(f.spouseId) : undefined
+            const isExpanded = !expandedMarriages || expandedMarriages.has(f.id)
+            const isPrimary  = idx === 0
+            const roleLabel  = f.marriageRole === 'chinh' ? 'Vợ cả' : f.marriageRole === 'thu' ? 'Vợ lẽ' : f.marriageRole === 'thiep' ? 'Tì thiếp' : null
+            const statusLabel = f.marriageStatus === 'divorced' ? 'ly hôn' : f.marriageStatus === 'widowed' ? 'đã mất' : null
+            const meta = [roleLabel, statusLabel].filter(Boolean).join(' · ')
+            return (
+              <div key={f.id} style={{ marginBottom: 6 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontSize: 11, color: 'var(--t-text-4)', minWidth: 16 }}>
+                    {isPrimary ? '①' : `${String.fromCharCode(0x2460 + idx)}`}
+                  </span>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--t-text-2)', flex: 1 }}>
+                    {spouse ? spouse.displayName : <span style={{ color: 'var(--t-text-4)', fontStyle: 'italic' }}>Chưa có vợ/chồng</span>}
+                  </span>
+                  {meta && <span style={{ fontSize: 10, color: 'var(--t-text-4)' }}>{meta}</span>}
+                  {!isPrimary && onToggleMarriage && (
+                    <button onClick={() => onToggleMarriage(f.id)} style={{ ...toggleBtn, background: isExpanded ? '#dbeafe' : undefined }}>
+                      {isExpanded ? '▼' : '▶'}
+                    </button>
+                  )}
+                </div>
+                <div style={{ fontSize: 11, color: 'var(--t-text-4)', paddingLeft: 22 }}>
+                  {f.childIds.length > 0
+                    ? `${f.childIds.length} con`
+                    : 'Chưa có con'}
+                  {!spouse && (
+                    <button onClick={() => onAddSpouse(f.id)} style={inlineLink}>⊕ Thêm vợ/chồng</button>
+                  )}
+                  <button onClick={() => onAddChild(f.id)} style={inlineLink}>+ Thêm con</button>
+                </div>
+              </div>
+            )
+          })}
+          {onAddMarriage && (
+            <button onClick={() => onAddMarriage(personId)} style={addMarriageBtn}>
+              + Thêm hôn nhân
+            </button>
+          )}
+        </Section>
+      )}
+
       {/* Actions */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 16, paddingTop: 14, borderTop: '1px solid var(--t-border)' }}>
         {onAddParent && !hasParent && (
-          <ActionBtn onClick={() => onAddParent(personId)} color="#059669">
-            ↑ Thêm cha / mẹ
-          </ActionBtn>
-        )}
-        {family && (
-          <div style={{ display: 'flex', gap: 6 }}>
-            <ActionBtn onClick={() => onAddChild(family.id)} color="#1e1b4b">
-              + Thêm con
-            </ActionBtn>
-            {!hasSpouse && (
-              <ActionBtn onClick={() => onAddSpouse(family.id)} color="#1e1b4b">
-                ⊕ Thêm vợ/chồng
+          isSpouse
+            ? <button disabled style={disabledBtn} title="Gia phả liên tộc chưa được hỗ trợ">
+                ↑ Thêm cha / mẹ
+              </button>
+            : <ActionBtn onClick={() => onAddParent(personId)} color="#059669">
+                ↑ Thêm cha / mẹ
               </ActionBtn>
-            )}
-          </div>
         )}
         {onCompare && (
           <ActionBtn onClick={onCompare} color="#0891b2">
@@ -252,4 +295,25 @@ const listItem: React.CSSProperties = {
 
 const subText: React.CSSProperties = {
   fontSize: 11, color: 'var(--t-text-3)', fontWeight: 400,
+}
+
+const toggleBtn: React.CSSProperties = {
+  padding: '1px 5px', fontSize: 10, borderRadius: 4, cursor: 'pointer',
+  border: '1px solid #93c5fd', color: '#3b82f6', background: 'transparent',
+}
+
+const inlineLink: React.CSSProperties = {
+  marginLeft: 8, padding: '1px 6px', fontSize: 10, borderRadius: 4, cursor: 'pointer',
+  border: '1px solid var(--t-border)', background: 'transparent', color: 'var(--t-text-4)',
+}
+
+const addMarriageBtn: React.CSSProperties = {
+  marginTop: 6, width: '100%', padding: '5px 0', fontSize: 11, borderRadius: 6,
+  border: '1px dashed #94a3b8', background: 'transparent', color: '#64748b', cursor: 'pointer',
+}
+
+const disabledBtn: React.CSSProperties = {
+  width: '100%', padding: '6px 0', borderRadius: 7, fontSize: 12, fontWeight: 700,
+  border: '1px solid #cbd5e1', background: 'transparent', color: '#94a3b8',
+  cursor: 'not-allowed', opacity: 0.6,
 }
