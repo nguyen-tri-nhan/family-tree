@@ -12,12 +12,12 @@ Tập hợp các tính năng đã được mention nhưng chưa implement, từ 
 | 2 | Tag Thủy Tổ / Khai Tổ | — | Thấp | User-designated annotation |
 | 3 | Ông Cố / Bà Cố + nội/ngoại (genDelta=3) | 2a done | Thấp | Sau khi có nội/ngoại từ v2 |
 | 4 | About / Tác giả | — | Thấp | Modal hoặc hash-routed page |
-| 5 | Ảnh cá nhân | cloud hoặc local | Trung bình | Avatar trên node |
+| 5 | Ảnh cá nhân | local (remote URL) | Trung bình | Avatar trên node; cloud upload → backlog C1 |
 | 6 | Recent files trên web | — | Thấp | File System Access API |
 | 7 | Highlight path khi node bị collapse | — | Trung bình | Node không có trong posRef → expand hoặc scroll |
 | 8 | UI warning giới hạn 200 người | — | Thấp | Hiện chỉ check khi save, không báo UI |
 | 9 | Multi-root / nhiều dòng họ | lớn | Cao | Chỉ render root đầu tiên hiện tại |
-| 10 | Cross-clan link | Phase 2 cloud | Rất cao | Dành cho cloud version |
+| 10 | Cross-clan link | ☁ Cloud — xem backlog C2 | Rất cao | Cần backend/auth |
 | 11 | Điều khoản sử dụng | — | Thấp | Xem [terms.md](terms.md) |
 | 12 | Quiz trắc nghiệm xưng hô | — | Trung bình | Xem [quiz.md](quiz.md) |
 
@@ -295,12 +295,12 @@ Version lấy từ `import pkg from '../../package.json'` (với `resolveJsonMod
 
 Node hiện chỉ hiển thị icon SVG mặc định (người nam/nữ). Ảnh thực của người trong gia phả tăng giá trị cảm xúc đáng kể.
 
-### Thiết kế v3 (cloud URL)
+### Thiết kế — remote URL (D2, không cần cloud)
 
 ```ts
 interface Person {
   // ...
-  avatarUrl?: string  // remote URL (https://...) hoặc data URI
+  avatarUrl?: string  // remote URL do user tự cung cấp (Google Drive, Imgur, v.v.)
 }
 ```
 
@@ -308,9 +308,9 @@ Trong node: nếu có `avatarUrl`, thay icon bằng `<image>` SVG với clip-pat
 
 ### Lưu ý
 
-- File `.ftree` là JSON mã hóa → không nhúng ảnh base64 trực tiếp (tăng kích thước file)
-- V3: chỉ hỗ trợ remote URL (user tự host hoặc dùng Google Drive public link)
-- V4+: upload + lưu trữ cloud kèm file tree
+- Không nhúng ảnh base64 vào file `.ftree` (tăng kích thước file)
+- User tự host ảnh hoặc dùng link public từ Google Drive / GitHub / Imgur
+- Upload server: xem **backlog C1** (Cloud / Phase 2)
 
 ---
 
@@ -429,9 +429,9 @@ Lớn, dành cho version sau khi có nhiều user feedback hơn.
 
 ## §10. Cross-clan link
 
-Dành cho **Phase 2 cloud**. Cho phép link giữa hai document `.ftree` khác nhau (ví dụ: con gái lấy chồng → link sang gia phả họ nhà chồng).
+→ **Xem backlog C2** (Cloud / Phase 2).
 
-Yêu cầu cloud infrastructure, authentication, shared document ID. Không trong scope desktop/web-only.
+Yêu cầu cloud infrastructure, authentication, shared document ID. Không trong scope bản local/desktop hiện tại.
 
 ---
 
@@ -449,7 +449,7 @@ Yêu cầu cloud infrastructure, authentication, shared document ID. Không tron
 | 6 | §7 Highlight collapse | Bug UX — nên fix |
 | 7 | §8 Warning 200 người | Nhỏ, cần cho freemium |
 | 8 | §1 Custom xưng hô | Phức tạp hơn, làm sau các items nhỏ |
-| 9 | §5 Ảnh | Cần quyết định storage strategy trước |
+| 9 | §5 Ảnh (remote URL) | Không cần cloud, user tự host link |
 | 10 | §9 Multi-root | Lớn, để sau |
-| 11 | §10 Cross-clan | Phase 2 cloud |
-| 12 | §12 Quiz | Sau khi kinship ổn định |
+| 11 | §12 Quiz | Sau khi kinship ổn định |
+| — | §10 Cross-clan | ☁ Cloud — xem backlog C2 |

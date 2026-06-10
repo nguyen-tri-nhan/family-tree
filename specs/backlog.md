@@ -24,13 +24,16 @@ Cập nhật: 2026-06-10
 | U4 | Recent files trên web (File System Access API) | enhancement-v3.md §6 | 🟡 Vừa | Planned |
 | **Data / Tree** | | | | |
 | D1 | Tag vai trò: Thủy Tổ, Khai Tổ, Trưởng Bối, Trưởng Họ, Trưởng Tộc | enhancement-v3.md §2 | 🟢 Thấp | Planned |
-| D2 | Ảnh cá nhân (remote URL) | enhancement-v3.md §5 | 🟢 Thấp | Planned |
+| D2 | Ảnh cá nhân (remote URL — user tự host) | enhancement-v3.md §5 | 🟢 Thấp | Planned |
 | D3 | Multi-root / nhiều dòng họ | enhancement-v3.md §9 | 🟢 Thấp | Deferred |
-| D4 | Cross-clan link | enhancement-v3.md §10 | ⚪ Phase 2 | Deferred |
+| D4 | Đa hôn nhân (đa thê + ly hôn/tái hôn) | multi-marriage.md | 🟡 Vừa | Planned |
 | **App / Legal** | | | | |
 | A1 | Điều khoản sử dụng (modal + /#/terms) | terms.md | 🔴 Cao | Planned |
 | A2 | Quiz trắc nghiệm xưng hô | quiz.md | 🟡 Vừa | Planned |
 | A3 | About page + hash routing | enhancement-v3.md §4 | — | ✅ Done |
+| **☁ Cloud / Phase 2** | | | | |
+| C1 | Ảnh cloud — upload + lưu trữ server | enhancement-v3.md §5 (V4+) | ⚪ Cloud | Deferred |
+| C2 | Cross-clan link giữa hai file .ftree | enhancement-v3.md §10 | ⚪ Cloud | Deferred |
 
 ---
 
@@ -41,27 +44,25 @@ Cập nhật: 2026-06-10
 2. **A1** — điều khoản, cần trước khi release rộng
 3. **U3** — warning 200 người, nhỏ, logic rõ
 
-### Sau khi K1 (nội/ngoại) xong
-4. **K2** — Cậu/Dì, phụ thuộc K1
-5. **K5** — Ông Cố/Bà Cố, phụ thuộc K1
-6. **K3** — vợ/chồng anh em họ, độc lập nhưng tốt nhất sau K1
-
 ### Medium-term
-7. **K6** — Custom xưng hô, cần data model rõ trước
-8. **U4** — Recent files web
-9. **A2** — Quiz, fun feature, sau khi kinship ổn định
-10. **D1** — Tag Thủy Tổ, nhỏ
+4. **K6** — Custom xưng hô, cần data model rõ trước
+5. **U4** — Recent files web
+6. **D1** — Tag Thủy Tổ, nhỏ
+7. **D2** — Ảnh remote URL
+8. **A2** — Quiz, sau khi kinship ổn định
 
 ### Long-term / Deferred
-11. **K4** — họ hàng xa
-12. **D2** — Ảnh (cần quyết định storage)
-13. **D3** — Multi-root (lớn)
-14. **D4** — Cross-clan (Phase 2 cloud)
+9. **D3** — Multi-root (lớn, cần UX research)
+
+### Cloud / Phase 2 (cần backend)
+10. **C1** — Ảnh cloud upload
+11. **C2** — Cross-clan link
 
 ---
 
 ## Ghi chú
 
-- **K1 là blocker** cho K2, K5 — ưu tiên cao nhất trong nhóm Kinship
 - **A1** nên hoàn thành trước khi share app cho người dùng ngoài
 - **U1/U2** là cùng một vấn đề (collapse) nhưng fix độc lập được
+- **D2** (Ảnh remote URL) không cần cloud — user paste link từ Google Drive / GitHub / Imgur
+- **C1/C2** cần cloud infrastructure riêng, không trong scope bản local hiện tại
