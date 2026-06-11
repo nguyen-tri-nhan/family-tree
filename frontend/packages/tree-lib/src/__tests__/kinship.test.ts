@@ -133,9 +133,9 @@ describe('computeKinship — cousins', () => {
     expect(r?.label).toBe('Em (họ)')
   })
 
-  test('p6 → p5: junior branch calls senior "Anh Út họ" (p5 is only child → Út), selfLabel "Em họ"', () => {
+  test('p6 → p5: junior branch calls senior "Anh Cả họ" (p5 is only child → Cả, not Út), selfLabel "Em họ"', () => {
     const r = computeKinship(makeTestDoc(), 'p6', 'p5', 'north')
-    expect(r?.label).toBe('Anh Út (họ)')
+    expect(r?.label).toBe('Anh Cả (họ)')
     expect(r?.selfLabel).toBe('Em (họ)')
   })
 })
@@ -382,10 +382,10 @@ describe('Fix 2d Case1 — vợ/chồng của anh/em họ', () => {
     expect(r?.label).toBe('Em (họ)')
   })
 
-  // p6 views p5 as "Anh Út họ" (p5 is only child → Út). p5's wife is p9 → "Chị (dâu) Út họ"
-  test('p6 → p9: Chị (dâu) Út họ (wife of Anh Út họ p5)', () => {
+  // p6 views p5 as "Anh Cả họ" (p5 is only child → Cả, not Út). p5's wife is p9 → "Chị (dâu) Cả họ"
+  test('p6 → p9: Chị (dâu) Cả họ (wife of Anh Cả họ p5)', () => {
     const r = computeKinship(makeTestDoc(), 'p6', 'p9', 'north')
-    expect(r?.label).toBe('Chị (dâu) Út (họ)')
+    expect(r?.label).toBe('Chị (dâu) Cả (họ)')
     // Path must include p5 (blood) before p9 (in-law): edge p5→p9 is the marriage line
     expect(r?.path).toEqual(['p6', 'p4', 'p1', 'p3', 'p5', 'p9'])
   })
@@ -423,8 +423,8 @@ function makeSecondCousinDoc(): FtreeDocument {
 }
 
 describe('Fix 2d Case2 — họ hàng xa chi tiết', () => {
-  test('first cousins: senior target gets ordinal ("Anh Út họ"), junior stays "Em họ" (depth 2)', () => {
-    expect(computeKinship(makeTestDoc(), 'p6', 'p5', 'north')?.label).toBe('Anh Út (họ)')
+  test('first cousins: senior target gets ordinal ("Anh Cả họ"), junior stays "Em họ" (depth 2)', () => {
+    expect(computeKinship(makeTestDoc(), 'p6', 'p5', 'north')?.label).toBe('Anh Cả (họ)')
     expect(computeKinship(makeTestDoc(), 'p5', 'p6', 'north')?.label).toBe('Em (họ)')
   })
 
@@ -434,9 +434,9 @@ describe('Fix 2d Case2 — họ hàng xa chi tiết', () => {
     expect(r?.genDelta).toBe(0)
   })
 
-  test('second cousins: t → v "Anh Út họ 2 đời" (v is only child → Út)', () => {
+  test('second cousins: t → v "Anh Cả họ 2 đời" (v is only child → Cả, not Út)', () => {
     const r = computeKinship(makeSecondCousinDoc(), 't', 'v', 'north')
-    expect(r?.label).toBe('Anh Út (họ 2 đời)')
+    expect(r?.label).toBe('Anh Cả (họ 2 đời)')
   })
 
   test('selfLabel is "Anh họ 2 đời"/"Em họ 2 đời"', () => {
@@ -497,10 +497,10 @@ describe('Female personId bug fix — correct viaMother when mother is family he
     expect(r?.genDelta).toBe(3)
   })
 
-  test('p15 → p5: Cậu Út (p5 is 1 gen above p15; reached via p7/mother isMaternal=true)', () => {
+  test('p15 → p5: Cậu Cả (p5 is only child → Cả not Út; reached via p7/mother isMaternal=true)', () => {
     // p15 depth-to-p1=3 (p15→p7→p4→p1), p5 depth-to-p1=2 (p5→p3→p1) → genDelta=1, isMaternal
     const r = computeKinship(makeTestDoc(), 'p15', 'p5', 'north')
     expect(r?.genDelta).toBe(1)
-    expect(r?.label).toBe('Cậu Út')
+    expect(r?.label).toBe('Cậu Cả')
   })
 })

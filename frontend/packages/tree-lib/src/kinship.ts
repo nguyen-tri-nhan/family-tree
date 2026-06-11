@@ -14,13 +14,37 @@ export interface KinshipResult {
 
 // ── Ordinal ───────────────────────────────────────────────────────
 
-const NAM = ['Hai','Ba','Tư','Năm','Sáu','Bảy','Tám','Chín','Mười']
-const BAC = ['Cả','Hai','Ba','Tư','Năm','Sáu','Bảy','Tám','Chín','Mười']
+// Convert a cardinal number (≥ 2) to Vietnamese ordinal word used in sibling naming.
+// Rules: 5 in units position after a tens digit → "Lăm"; 1 in units after tens → "Mốt".
+function viOrdinal(n: number): string {
+  if (n <= 0) return String(n)
+  const units  = ['','Một','Hai','Ba','Tư','Năm','Sáu','Bảy','Tám','Chín']
+  // 11-19: 1→Một (not Mốt), 5→Lăm (not Năm)
+  const uTeens = ['','Một','Hai','Ba','Tư','Lăm','Sáu','Bảy','Tám','Chín']
+  // 21, 31…: 1→Mốt, 5→Lăm
+  const uAfter = ['','Mốt','Hai','Ba','Tư','Lăm','Sáu','Bảy','Tám','Chín']
+  const tens   = ['','Mười','Hai Mươi','Ba Mươi','Bốn Mươi','Năm Mươi',
+                  'Sáu Mươi','Bảy Mươi','Tám Mươi','Chín Mươi']
+  if (n < 10)   return units[n]
+  if (n === 10) return 'Mười'
+  const t = Math.floor(n / 10)
+  const u = n % 10
+  if (u === 0)  return tens[t]
+  const uWord = t === 1 ? uTeens[u] : uAfter[u]
+  return tens[t] + ' ' + uWord
+}
 
 export function getSiblingOrdinal(index: number, isYoungest: boolean, region: Region): string {
   if (isYoungest) return 'Út'
-  const arr = region === 'south' ? NAM : BAC
-  return arr[index] ?? (region === 'south' ? String(index + 2) : String(index + 1))
+  if (region === 'south') {
+    // South counts from Hai (2): index 0 → Hai, index 1 → Ba, ...
+    if (index === 0) return 'Hai'
+    return viOrdinal(index + 2)
+  } else {
+    // North: index 0 → Cả, index 1 → Hai, ...
+    if (index === 0) return 'Cả'
+    return viOrdinal(index + 1)
+  }
 }
 
 // ── Ancestor BFS ──────────────────────────────────────────────────
@@ -126,8 +150,12 @@ function buildLabel(
       // Anh/em của mẹ → Cậu (male) / Dì (female)
       return { label: g(tg, `Cậu${N}`, `Dì${N}`), selfLabel: 'Cháu', ordinal }
     }
-    if (branchRank > 0) return { label: g(tg, `Bác${N}`, `Bác${N}`), selfLabel: 'Cháu', ordinal }
-    return { label: g(tg, `Chú${N}`, `Cô${N}`),                              selfLabel: 'Cháu', ordinal }
+    if (branchRank > 0) {
+      // South: all of father's sisters are "Cô" regardless of seniority.
+      if (region === 'south' && tg === 'female') return { label: `Cô${N}`, selfLabel: 'Cháu', ordinal }
+      return { label: g(tg, `Bác${N}`, `Bác${N}`), selfLabel: 'Cháu', ordinal }
+    }
+    return { label: g(tg, `Chú${N}`, `Cô${N}`), selfLabel: 'Cháu', ordinal }
   }
 
   // ── Same generation ──────────────────────────────────────────
@@ -304,7 +332,16 @@ export function computeKinship(
     for (const lcaUnit of lcaFamilies) {
       const vi = lcaUnit.childIds.indexOf(vChild)
       const ti = lcaUnit.childIds.indexOf(tChild)
-      if (vi !== -1 && ti !== -1) { branchRank = vi - ti; break }
+      if (vi !== -1 && ti !== -1) {
+        const vy = idx.personMap.get(vChild)?.birthDate?.year
+        const ty = idx.personMap.get(tChild)?.birthDate?.year
+        // Prefer birth-year comparison; childIds order as fallback.
+        // Positive branchRank = viewer's ancestor is younger = target is senior (Bác).
+        branchRank = (vy !== undefined && ty !== undefined && vy !== ty)
+          ? vy - ty
+          : vi - ti
+        break
+      }
     }
     // Cross-family case: vChild and tChild are children of *different* FamilyUnits
     // of the same LCA person (e.g. uncle/nephew via different wives of same father).
@@ -335,11 +372,16 @@ export function computeKinship(
     branchRank = (vPF.marriageOrder ?? 1) - (tPF.marriageOrder ?? 1)
   }
 
-  // Ordinal: target's position among their siblings
+  // Ordinal: target's rank among siblings, sorted by birth year (fallback: childIds order)
   let ordinal: string | undefined
   if (tPF) {
-    const ti = tPF.childIds.indexOf(bloodTargetId)
-    if (ti !== -1) ordinal = getSiblingOrdinal(ti, ti === tPF.childIds.length - 1, region)
+    const sorted = [...tPF.childIds].sort((a, b) => {
+      const ay = idx.personMap.get(a)?.birthDate?.year ?? Infinity
+      const by = idx.personMap.get(b)?.birthDate?.year ?? Infinity
+      return ay - by
+    })
+    const ti = sorted.indexOf(bloodTargetId)
+    if (ti !== -1) ordinal = getSiblingOrdinal(ti, sorted.length > 1 && ti === sorted.length - 1, region)
   }
 
   // viewer.gender (not effectiveViewer) is used for selfLabel — dâu/rể xưng theo giới tính thật

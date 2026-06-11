@@ -1,6 +1,6 @@
 {
   "name": "@family-tree/electron-app",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "private": true,
   "type": "module",
   "main": "out/main/index.js",
@@ -12,7 +12,7 @@
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "@family-tree/tree-lib": "^0.0.5",
+    "@family-tree/tree-lib": "^0.0.6",
     "@types/react": "^19.1.6",
     "@types/react-dom": "^19.1.5",
     "@vitejs/plugin-react": "^4.3.4",
@@ -37,6 +37,7 @@
       "!out/**/*.map"
     ],
     "mac": {
+      "icon": "resources/icon.icns",
       "target": [
         {
           "target": "dmg",
@@ -49,6 +50,7 @@
       "category": "public.app-category.productivity"
     },
     "win": {
+      "icon": "resources/icon.png",
       "target": [
         {
           "target": "nsis",
@@ -59,6 +61,7 @@
       ]
     },
     "linux": {
+      "icon": "resources/icon.png",
       "target": [
         {
           "target": "AppImage",
