@@ -55,6 +55,7 @@ export function App({
   const [showIssues,         setShowIssues]         = useState(false)
   const [showExport,         setShowExport]         = useState(false)
   const [expandedMarriages,  setExpandedMarriages]  = useState<Set<string>>(new Set())
+  const [editMode,           setEditMode]           = useState(false)
 
   // ── Theme toggle ──────────────────────────────────────────────
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -253,6 +254,9 @@ export function App({
         </div>
 
         <div style={{ display: 'flex', gap: 6, ...noDragStyle }}>
+          <button onClick={() => setEditMode(m => !m)} style={editMode ? btnActive : btn(false)}>
+            {editMode ? '✓ Xong' : '✏ Sửa'}
+          </button>
           <button onClick={handleNew}                   style={btn(false)}>Tạo mới</button>
           <button onClick={handleOpen}                  style={btn(false)}>Mở file</button>
           <button onClick={handleSave}                  style={btn(true)}>{saved ? '✓ Đã lưu' : 'Lưu'}</button>
@@ -285,9 +289,9 @@ export function App({
           highlightPath={kinshipHighlightPath}
           issuePersonIds={issuePersonIds}
           onPersonClick={handlePersonClick}
-          onAddChild={handleAddChild}
-          onAddSpouse={handleAddSpouse}
-          onAddMarriage={handleAddMarriage}
+          onAddChild={editMode ? handleAddChild : undefined}
+          onAddSpouse={editMode ? handleAddSpouse : undefined}
+          onAddMarriage={editMode ? handleAddMarriage : undefined}
           darkMode={theme === 'dark'}
         />
         {doc.families.length === 0 && (
@@ -304,6 +308,7 @@ export function App({
         <PersonPanel
           personId={selectedPerson}
           doc={doc}
+          editMode={editMode}
           onClose={() => setSelected(null)}
           onEdit={id => { setFormMode({ type: 'edit', personId: id }); setSelected(null) }}
           onDelete={handleDelete}
@@ -392,6 +397,12 @@ function btn(primary: boolean): React.CSSProperties {
     color:      primary ? 'var(--t-brand-fg)' : 'var(--t-btn2-fg)',
     whiteSpace: 'nowrap',
   }
+}
+
+const btnActive: React.CSSProperties = {
+  padding: '6px 14px', borderRadius: 8, border: 'none',
+  fontSize: 13, fontWeight: 700, cursor: 'pointer',
+  background: '#059669', color: '#fff', whiteSpace: 'nowrap',
 }
 
 function issueBtn(hasError: boolean): React.CSSProperties {
