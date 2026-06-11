@@ -1,15 +1,18 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import type { FtreeDocument } from '../types'
 import { buildExportCanvas } from '../utils/exportTree'
 import type { ExportOptions } from '../utils/exportTree'
+import { extractSubtree } from '../utils/subtree'
+import FamilyTree from '../FamilyTree'
 
 interface Props {
-  svgEl:   SVGSVGElement | null
-  doc:     FtreeDocument
-  onClose: () => void
+  svgEl:                 SVGSVGElement | null
+  doc:                   FtreeDocument
+  initialScopePersonId?: string
+  onClose:               () => void
 }
 
-export function ExportDialog({ svgEl, doc, onClose }: Props) {
+export function ExportDialog({ svgEl, doc, initialScopePersonId, onClose }: Props) {
   const defaultTitle = doc.clan.surname
     ? `Gia phả họ ${doc.clan.surname}`
     : `Gia phả ${doc.clan.name}`
@@ -20,26 +23,36 @@ export function ExportDialog({ svgEl, doc, onClose }: Props) {
     showGenMarkers: true,
     font:           'system',
   })
+  const [scopePersonId, setScopePersonId] = useState<string | null>(initialScopePersonId ?? null)
   const [previewUrl, setPreviewUrl] = useState<string>('')
   const [loading,    setLoading]    = useState(false)
   const [exporting,  setExporting]  = useState(false)
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const timerRef   = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const subSvgRef  = useRef<SVGSVGElement>(null)
+
+  const subDoc = useMemo(
+    () => scopePersonId ? extractSubtree(doc, scopePersonId) : null,
+    [doc, scopePersonId],
+  )
 
   const schedulePreview = useCallback(() => {
-    if (!svgEl) return
     if (timerRef.current) clearTimeout(timerRef.current)
+    const delay = scopePersonId ? 400 : 250
     timerRef.current = setTimeout(async () => {
+      const activeSvg = scopePersonId ? subSvgRef.current : svgEl
+      const activeDoc = subDoc ?? doc
+      if (!activeSvg) return
       setLoading(true)
       try {
-        const canvas = await buildExportCanvas(svgEl, doc, opts, 0.5)
+        const canvas = await buildExportCanvas(activeSvg, activeDoc, opts, 0.5)
         setPreviewUrl(canvas.toDataURL('image/png'))
       } catch (e) {
         console.error('Export preview error:', e)
       } finally {
         setLoading(false)
       }
-    }, 250)
-  }, [svgEl, doc, opts])
+    }, delay)
+  }, [svgEl, doc, opts, scopePersonId, subDoc])
 
   useEffect(() => { schedulePreview() }, [schedulePreview])
 
@@ -49,35 +62,26 @@ export function ExportDialog({ svgEl, doc, onClose }: Props) {
     return () => window.removeEventListener('keydown', h)
   }, [onClose])
 
-  async function doExportPng() {
-    if (!svgEl) return
+  async function doExport(scale: number, format: 'png' | 'pdf') {
+    const activeSvg = scopePersonId ? subSvgRef.current : svgEl
+    const activeDoc = subDoc ?? doc
+    if (!activeSvg) return
     setExporting(true)
     try {
-      const canvas = await buildExportCanvas(svgEl, doc, opts, 2)
-      const a = document.createElement('a')
-      a.href     = canvas.toDataURL('image/png')
-      a.download = `${doc.clan.name || 'gia-pha'}.png`
-      a.click()
-    } finally {
-      setExporting(false)
-    }
-  }
-
-  async function doExportPdf() {
-    if (!svgEl) return
-    setExporting(true)
-    try {
-      const canvas = await buildExportCanvas(svgEl, doc, opts, 1.5)
-      const w = canvas.width, h = canvas.height
-      const { default: jsPDF } = await import('jspdf')
-      const pdf = new jsPDF({
-        orientation: w > h ? 'l' : 'p',
-        unit:        'px',
-        format:      [w, h],
-        putOnlyUsedFonts: true,
-      })
-      pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, w, h)
-      pdf.save(`${doc.clan.name || 'gia-pha'}.pdf`)
+      const canvas = await buildExportCanvas(activeSvg, activeDoc, opts, scale)
+      const name   = activeDoc.clan.name || 'gia-pha'
+      if (format === 'png') {
+        const a = document.createElement('a')
+        a.href     = canvas.toDataURL('image/png')
+        a.download = `${name}.png`
+        a.click()
+      } else {
+        const w = canvas.width, h = canvas.height
+        const { default: jsPDF } = await import('jspdf')
+        const pdf = new jsPDF({ orientation: w > h ? 'l' : 'p', unit: 'px', format: [w, h], putOnlyUsedFonts: true })
+        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, w, h)
+        pdf.save(`${name}.pdf`)
+      }
     } finally {
       setExporting(false)
     }
@@ -102,6 +106,33 @@ export function ExportDialog({ svgEl, doc, onClose }: Props) {
 
           {/* Settings panel */}
           <div style={settingsPanel}>
+
+            {/* Scope selector */}
+            <Field label="Phạm vi xuất">
+              <label style={radioRow}>
+                <input type="radio" checked={scopePersonId === null} onChange={() => setScopePersonId(null)} />
+                <span style={{ fontSize: 13, color: 'var(--t-text)' }}>Toàn bộ cây</span>
+              </label>
+              <label style={radioRow}>
+                <input type="radio" checked={scopePersonId !== null} onChange={() => {
+                  const first = doc.persons[0]
+                  if (first) setScopePersonId(initialScopePersonId ?? first.id)
+                }} />
+                <span style={{ fontSize: 13, color: 'var(--t-text)' }}>Xuất theo chi</span>
+              </label>
+              {scopePersonId !== null && (
+                <select
+                  value={scopePersonId}
+                  onChange={e => setScopePersonId(e.target.value)}
+                  style={{ ...inputStyle, marginTop: 4 }}
+                >
+                  {doc.persons.map(p => (
+                    <option key={p.id} value={p.id}>{p.displayName}</option>
+                  ))}
+                </select>
+              )}
+            </Field>
+
             <Field label="Tiêu đề">
               <input
                 value={opts.title}
@@ -159,14 +190,21 @@ export function ExportDialog({ svgEl, doc, onClose }: Props) {
         {/* ── Footer ─────────────────────────────────────────────── */}
         <div style={dialogFooter}>
           <button onClick={onClose} style={cancelBtnStyle} disabled={exporting}>Hủy</button>
-          <button onClick={doExportPdf} style={actionBtn(false)} disabled={exporting || !svgEl}>
+          <button onClick={() => doExport(1.5, 'pdf')} style={actionBtn(false)} disabled={exporting || (!svgEl && !subSvgRef.current)}>
             {exporting ? '…' : '↓ PDF'}
           </button>
-          <button onClick={doExportPng} style={actionBtn(true)} disabled={exporting || !svgEl}>
+          <button onClick={() => doExport(2, 'png')} style={actionBtn(true)} disabled={exporting || (!svgEl && !subSvgRef.current)}>
             {exporting ? '…' : '↓ PNG'}
           </button>
         </div>
       </div>
+
+      {/* Hidden off-screen FamilyTree for subtree export */}
+      {subDoc && (
+        <div style={{ position: 'fixed', left: -9999, top: 0, width: 2000, pointerEvents: 'none', opacity: 0, zIndex: -1 }}>
+          <FamilyTree ref={subSvgRef} document={subDoc} />
+        </div>
+      )}
     </div>
   )
 }
@@ -251,6 +289,10 @@ const inputStyle: React.CSSProperties = {
   background:   'var(--t-bg)',
   boxSizing:    'border-box',
   outline:      'none',
+}
+
+const radioRow: React.CSSProperties = {
+  display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer',
 }
 
 const checkRow: React.CSSProperties = {

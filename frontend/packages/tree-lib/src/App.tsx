@@ -13,6 +13,7 @@ import { ExportDialog }   from './components/ExportDialog'
 import { useStorage }     from './storage'
 import { deletePerson, addMarriage } from './mutations'
 import type { FtreeDocument } from './types'
+import { encodeTree, decodeTree } from './utils/shareUrl'
 
 type FormMode =
   | { type: 'add-root' }
@@ -54,8 +55,11 @@ export function App({
   const [showClanForm,       setShowClanForm]       = useState(false)
   const [showIssues,         setShowIssues]         = useState(false)
   const [showExport,         setShowExport]         = useState(false)
+  const [exportScopePersonId, setExportScopePersonId] = useState<string | null>(null)
   const [expandedMarriages,  setExpandedMarriages]  = useState<Set<string>>(new Set())
   const [editMode,           setEditMode]           = useState(false)
+  const [readOnly,           setReadOnly]           = useState(false)
+  const [shareToast,         setShareToast]         = useState(false)
 
   // ── Theme toggle ──────────────────────────────────────────────
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -70,11 +74,35 @@ export function App({
   const toggleTheme = useCallback(() => setTheme(t => t === 'dark' ? 'light' : 'dark'), [])
 
   useEffect(() => {
+    const hash = window.location.hash
+    const shareParam = new URLSearchParams(
+      hash.includes('?') ? hash.slice(hash.indexOf('?')) : ''
+    ).get('share')
+    if (shareParam) {
+      decodeTree(shareParam)
+        .then(d => { setDoc(d); setReadOnly(true) })
+        .catch(() => alert('Link chia sẻ không hợp lệ hoặc bị lỗi'))
+      history.replaceState(null, '', window.location.pathname + '#/')
+      return
+    }
     storage.getRecentFiles().then(setRecent).catch(console.error)
     if (storage.hasSession()) {
       storage.load().then(setDoc).catch(console.error)
     }
   }, [storage])
+
+  async function handleShare() {
+    if (!doc) return
+    const { encoded, oversized } = await encodeTree(doc)
+    if (oversized) {
+      const go = confirm(`URL khá dài (${encoded.length} ký tự) — một số ứng dụng có thể không mở được.\nVẫn copy?`)
+      if (!go) return
+    }
+    const url = `${window.location.origin}${window.location.pathname}#/?share=${encoded}`
+    await navigator.clipboard.writeText(url)
+    setShareToast(true)
+    setTimeout(() => setShareToast(false), 2500)
+  }
 
   useEffect(() => {
     if (!compareMode.active) return
@@ -254,20 +282,33 @@ export function App({
         </div>
 
         <div style={{ display: 'flex', gap: 6, ...noDragStyle }}>
-          <button onClick={() => setEditMode(m => !m)} style={editMode ? btnActive : btn(false)}>
-            {editMode ? '✓ Xong' : '✏ Sửa'}
-          </button>
-          <button onClick={handleNew}                   style={btn(false)}>Tạo mới</button>
-          <button onClick={handleOpen}                  style={btn(false)}>Mở file</button>
-          <button onClick={handleSave}                  style={btn(true)}>{saved ? '✓ Đã lưu' : 'Lưu'}</button>
-          <button onClick={() => setShowExport(true)}    style={btn(false)}>↓ Xuất</button>
-          <button onClick={() => setShowClanForm(true)} style={btn(false)}>⚙</button>
-          {issues.length > 0 && (
-            <button onClick={() => setShowIssues(true)} style={issueBtn(errorCount > 0)}>
-              {errorCount > 0 ? `■ ${errorCount} lỗi` : `▲ ${warningCount}`}
+          {!readOnly && (
+            <>
+              <button onClick={() => setEditMode(m => !m)} style={editMode ? btnActive : btn(false)}>
+                {editMode ? '✓ Xong' : '✏ Sửa'}
+              </button>
+              <button onClick={handleNew}  style={btn(false)}>Tạo mới</button>
+              <button onClick={handleOpen} style={btn(false)}>Mở file</button>
+              <button onClick={handleSave} style={btn(true)}>{saved ? '✓ Đã lưu' : 'Lưu'}</button>
+            </>
+          )}
+          <button onClick={() => { setExportScopePersonId(null); setShowExport(true) }} style={btn(false)}>↓ Xuất</button>
+          {storage.platform === 'web' && (
+            <button onClick={handleShare} style={shareToast ? btnActive : btn(false)}>
+              {shareToast ? '✓ Đã copy' : '↗ Chia sẻ'}
             </button>
           )}
-          <button onClick={toggleTheme}                 style={btn(false)} title={theme === 'dark' ? 'Chuyển sang sáng' : 'Chuyển sang tối'}>{theme === 'dark' ? '☀' : '🌙'}</button>
+          {!readOnly && (
+            <>
+              <button onClick={() => setShowClanForm(true)} style={btn(false)}>⚙</button>
+              {issues.length > 0 && (
+                <button onClick={() => setShowIssues(true)} style={issueBtn(errorCount > 0)}>
+                  {errorCount > 0 ? `■ ${errorCount} lỗi` : `▲ ${warningCount}`}
+                </button>
+              )}
+            </>
+          )}
+          <button onClick={toggleTheme} style={btn(false)} title={theme === 'dark' ? 'Chuyển sang sáng' : 'Chuyển sang tối'}>{theme === 'dark' ? '☀' : '🌙'}</button>
           {onAbout && (
             <button onClick={onAbout} style={btn(false)} title="Về ứng dụng">ⓘ</button>
           )}
@@ -281,7 +322,17 @@ export function App({
         </div>
       )}
 
-      <div style={{ paddingTop: compareMode.active ? 84 : 48, position: 'relative' }}>
+      {readOnly && (
+        <div style={shareBanner}>
+          <span>Bạn đang xem bản chia sẻ</span>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button onClick={() => setReadOnly(false)} style={cancelBtn}>✏ Sửa bản sao</button>
+            <button onClick={() => storage.exportFile(doc)} style={cancelBtn}>↓ Tải về .ftree</button>
+          </div>
+        </div>
+      )}
+
+      <div style={{ paddingTop: compareMode.active || readOnly ? 84 : 48, position: 'relative' }}>
         <FamilyTree
           ref={treeRef}
           document={doc}
@@ -320,6 +371,11 @@ export function App({
           onToggleMarriage={handleToggleMarriage}
           onCompare={() => {
             setCompareMode({ active: true, firstPersonId: selectedPerson })
+            setSelected(null)
+          }}
+          onExportBranch={id => {
+            setExportScopePersonId(id)
+            setShowExport(true)
             setSelected(null)
           }}
         />
@@ -363,7 +419,8 @@ export function App({
         <ExportDialog
           svgEl={treeRef.current}
           doc={doc}
-          onClose={() => setShowExport(false)}
+          initialScopePersonId={exportScopePersonId ?? undefined}
+          onClose={() => { setShowExport(false); setExportScopePersonId(null) }}
         />
       )}
     </div>
@@ -379,6 +436,13 @@ const emptyState: React.CSSProperties = {
 const compareBanner: React.CSSProperties = {
   position: 'fixed', top: 48, left: 0, right: 0, zIndex: 9,
   background: '#0891b2', color: '#fff',
+  padding: '8px 20px', fontSize: 13, fontWeight: 600,
+  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+}
+
+const shareBanner: React.CSSProperties = {
+  position: 'fixed', top: 48, left: 0, right: 0, zIndex: 9,
+  background: '#7c3aed', color: '#fff',
   padding: '8px 20px', fontSize: 13, fontWeight: 600,
   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
 }
