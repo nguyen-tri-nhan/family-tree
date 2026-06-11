@@ -17,10 +17,13 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Get version
+      - name: Get version and previous tag
         id: pkg
         run: |
           echo "version=$(node -p "require('./frontend/packages/electron-app/package.json').version")" >> $GITHUB_OUTPUT
+          # Lấy tag mới nhất hiện có (= tag trước khi release này được tạo)
+          PREV=$(git tag --sort=-version:refname | head -1)
+          echo "prev_tag=${PREV}" >> $GITHUB_OUTPUT
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -28,6 +31,7 @@ jobs:
           tag_name: v${{ steps.pkg.outputs.version }}
           name: v${{ steps.pkg.outputs.version }}
           generate_release_notes: true
+          previous_tag_name: ${{ steps.pkg.outputs.prev_tag }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
