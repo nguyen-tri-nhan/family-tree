@@ -21,7 +21,6 @@ jobs:
         id: pkg
         run: |
           echo "version=$(node -p "require('./frontend/packages/electron-app/package.json').version")" >> $GITHUB_OUTPUT
-          # Lấy tag mới nhất hiện có (= tag trước khi release này được tạo)
           PREV=$(git tag --sort=-version:refname | head -1)
           echo "prev_tag=${PREV}" >> $GITHUB_OUTPUT
 
