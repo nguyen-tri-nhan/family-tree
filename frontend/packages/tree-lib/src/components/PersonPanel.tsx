@@ -13,13 +13,14 @@ interface PersonPanelProps {
   onAddParent?:      (childPersonId: string) => void
   onAddMarriage?:    (personId: string) => void
   onCompare?:        () => void
+  onExportBranch?:   (personId: string) => void
   expandedMarriages?: Set<string>
   onToggleMarriage?:  (familyId: string) => void
 }
 
 export function PersonPanel({
   personId, doc, editMode = false, onClose, onEdit, onDelete, onAddChild, onAddSpouse,
-  onAddParent, onAddMarriage, onCompare, expandedMarriages, onToggleMarriage,
+  onAddParent, onAddMarriage, onCompare, onExportBranch, expandedMarriages, onToggleMarriage,
 }: PersonPanelProps) {
   const { personMap, familiesByPerson, childToParentFamily, familyBySpouse } = buildIndex(doc)
   const person = personMap.get(personId)
@@ -195,6 +196,11 @@ export function PersonPanel({
         {onCompare && (
           <ActionBtn onClick={onCompare} color="#0891b2">
             ↔ Xem quan hệ với...
+          </ActionBtn>
+        )}
+        {onExportBranch && (
+          <ActionBtn onClick={() => onExportBranch(personId)} color="#7c3aed">
+            ↗ Xuất chi này
           </ActionBtn>
         )}
         {editMode && (
