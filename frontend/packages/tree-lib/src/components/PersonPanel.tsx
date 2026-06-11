@@ -4,6 +4,7 @@ import { buildIndex } from '../types'
 interface PersonPanelProps {
   personId:          string
   doc:               FtreeDocument
+  editMode?:         boolean
   onClose:           () => void
   onEdit:            (personId: string) => void
   onDelete:          (personId: string) => void
@@ -17,7 +18,7 @@ interface PersonPanelProps {
 }
 
 export function PersonPanel({
-  personId, doc, onClose, onEdit, onDelete, onAddChild, onAddSpouse,
+  personId, doc, editMode = false, onClose, onEdit, onDelete, onAddChild, onAddSpouse,
   onAddParent, onAddMarriage, onCompare, expandedMarriages, onToggleMarriage,
 }: PersonPanelProps) {
   const { personMap, familiesByPerson, childToParentFamily, familyBySpouse } = buildIndex(doc)
@@ -162,15 +163,17 @@ export function PersonPanel({
                   {f.childIds.length > 0
                     ? `${f.childIds.length} con`
                     : 'Chưa có con'}
-                  {!spouse && (
+                  {editMode && !spouse && (
                     <button onClick={() => onAddSpouse(f.id)} style={inlineLink}>⊕ Thêm vợ/chồng</button>
                   )}
-                  <button onClick={() => onAddChild(f.id)} style={inlineLink}>+ Thêm con</button>
+                  {editMode && (
+                    <button onClick={() => onAddChild(f.id)} style={inlineLink}>+ Thêm con</button>
+                  )}
                 </div>
               </div>
             )
           })}
-          {onAddMarriage && allFamilies[0]?.spouseId && (
+          {editMode && onAddMarriage && allFamilies[0]?.spouseId && (
             <button onClick={() => onAddMarriage(personId)} style={addMarriageBtn}>
               + Thêm hôn nhân
             </button>
@@ -180,7 +183,7 @@ export function PersonPanel({
 
       {/* Actions */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 16, paddingTop: 14, borderTop: '1px solid var(--t-border)' }}>
-        {onAddParent && !hasParent && (
+        {editMode && onAddParent && !hasParent && (
           isSpouse
             ? <button disabled style={disabledBtn} title="Gia phả liên tộc chưa được hỗ trợ">
                 ↑ Thêm cha / mẹ
@@ -194,16 +197,18 @@ export function PersonPanel({
             ↔ Xem quan hệ với...
           </ActionBtn>
         )}
-        <div style={{ display: 'flex', gap: 6 }}>
-          <ActionBtn onClick={() => onEdit(personId)} color="#4f46e5">
-            ✏ Sửa
-          </ActionBtn>
-          <ActionBtn onClick={() => {
-            if (confirm(`Xoá ${person.displayName}?`)) onDelete(personId)
-          }} color="#dc2626">
-            🗑 Xoá
-          </ActionBtn>
-        </div>
+        {editMode && (
+          <div style={{ display: 'flex', gap: 6 }}>
+            <ActionBtn onClick={() => onEdit(personId)} color="#4f46e5">
+              ✏ Sửa
+            </ActionBtn>
+            <ActionBtn onClick={() => {
+              if (confirm(`Xoá ${person.displayName}?`)) onDelete(personId)
+            }} color="#dc2626">
+              🗑 Xoá
+            </ActionBtn>
+          </div>
+        )}
       </div>
     </div>
   )
