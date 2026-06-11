@@ -1,7 +1,7 @@
 {
   "name": "@family-tree/web-app",
   "private": true,
-  "version": "0.0.5",
+  "version": "0.0.6",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,7 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@family-tree/tree-lib": "^0.0.5",
+    "@family-tree/tree-lib": "^0.0.6",
     "d3": "^7.9.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
