@@ -14,13 +14,37 @@ export interface KinshipResult {
 
 // ── Ordinal ───────────────────────────────────────────────────────
 
-const NAM = ['Hai','Ba','Tư','Năm','Sáu','Bảy','Tám','Chín','Mười']
-const BAC = ['Cả','Hai','Ba','Tư','Năm','Sáu','Bảy','Tám','Chín','Mười']
+// Convert a cardinal number (≥ 2) to Vietnamese ordinal word used in sibling naming.
+// Rules: 5 in units position after a tens digit → "Lăm"; 1 in units after tens → "Mốt".
+function viOrdinal(n: number): string {
+  if (n <= 0) return String(n)
+  const units  = ['','Một','Hai','Ba','Tư','Năm','Sáu','Bảy','Tám','Chín']
+  // 11-19: 1→Một (not Mốt), 5→Lăm (not Năm)
+  const uTeens = ['','Một','Hai','Ba','Tư','Lăm','Sáu','Bảy','Tám','Chín']
+  // 21, 31…: 1→Mốt, 5→Lăm
+  const uAfter = ['','Mốt','Hai','Ba','Tư','Lăm','Sáu','Bảy','Tám','Chín']
+  const tens   = ['','Mười','Hai Mươi','Ba Mươi','Bốn Mươi','Năm Mươi',
+                  'Sáu Mươi','Bảy Mươi','Tám Mươi','Chín Mươi']
+  if (n < 10)   return units[n]
+  if (n === 10) return 'Mười'
+  const t = Math.floor(n / 10)
+  const u = n % 10
+  if (u === 0)  return tens[t]
+  const uWord = t === 1 ? uTeens[u] : uAfter[u]
+  return tens[t] + ' ' + uWord
+}
 
 export function getSiblingOrdinal(index: number, isYoungest: boolean, region: Region): string {
   if (isYoungest) return 'Út'
-  const arr = region === 'south' ? NAM : BAC
-  return arr[index] ?? (region === 'south' ? String(index + 2) : String(index + 1))
+  if (region === 'south') {
+    // South counts from Hai (2): index 0 → Hai, index 1 → Ba, ...
+    if (index === 0) return 'Hai'
+    return viOrdinal(index + 2)
+  } else {
+    // North: index 0 → Cả, index 1 → Hai, ...
+    if (index === 0) return 'Cả'
+    return viOrdinal(index + 1)
+  }
 }
 
 // ── Ancestor BFS ──────────────────────────────────────────────────
