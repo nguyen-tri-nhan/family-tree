@@ -90,9 +90,8 @@ const DEMO_DOCUMENT: FtreeDocument = {
 // ── Convert FtreeDocument → internal tree ───────────────────────
 
 function buildTree(
-  doc:              FtreeDocument,
-  collapsed:        Set<string>,
-  expandedMarriages: Set<string>,
+  doc:       FtreeDocument,
+  collapsed: Set<string>,
 ): TreeNode | null {
   if (doc.families.length === 0) return null
 
@@ -126,7 +125,7 @@ function buildTree(
     const spouse      = family.spouseId ? personMap.get(family.spouseId) : undefined
     const allFamilies = familiesByPerson.get(family.personId) ?? [family]
 
-    // Secondary marriages (rendered to the left of the primary person)
+    // Secondary marriages (rendered to the right, in order: wife1 — husband — wife2 — wife3)
     const extraFamilies: ExtraFamilyNode[] = allFamilies.slice(1).map(ef => ({
       familyId:   ef.id,
       spouse:     ef.spouseId ? personMap.get(ef.spouseId) : undefined,
@@ -143,17 +142,23 @@ function buildTree(
 
     for (let i = 0; i < allFamilies.slice(1).length; i++) {
       const ef = allFamilies[i + 1]
-      if (!expandedMarriages.has(ef.id)) continue
       for (const childId of ef.childIds) {
         const cf = familiesByPerson.get(childId)?.[0]
         if (cf) childEntries.push({ f: cf, offset: i + 1 })
       }
     }
 
-    // Secondary wives render to the LEFT; sort their children leftward too
-    // so D3 places them near the correct wife and avoids crossing edges.
-    // Higher offset = further left wife → should appear first (= leftmost in D3).
-    childEntries.sort((a, b) => b.offset - a.offset)
+    // Primary sort: by marriage offset (primary family left, secondary families right).
+    // Secondary sort within same family: by birth year ascending (oldest child leftmost).
+    // Children without a birth year sort last within their group.
+    childEntries.sort((a, b) => {
+      if (a.offset !== b.offset) return a.offset - b.offset
+      const personA = personMap.get(a.f.personId)
+      const personB = personMap.get(b.f.personId)
+      const ya = personA?.birthDate?.year ?? Infinity
+      const yb = personB?.birthDate?.year ?? Infinity
+      return ya - yb
+    })
 
     if (collapsed.has(family.id)) {
       return {
@@ -258,8 +263,6 @@ export interface FamilyTreeProps {
   onAddChild?:         (parentFamilyId: string) => void
   onAddSpouse?:        (familyId: string) => void
   onAddMarriage?:      (personId: string) => void
-  expandedMarriages?:  Set<string>           // familyUnitIds of expanded secondary marriages
-  onToggleMarriage?:   (familyId: string) => void
   highlightPersonId?:  string
   highlightPath?:      string[]
   issuePersonIds?:     Set<string>
@@ -271,8 +274,6 @@ type NodePos = { x: number; y: number }
 const FamilyTree = forwardRef<SVGSVGElement, FamilyTreeProps>(function FamilyTree({
   document: doc = DEMO_DOCUMENT,
   onPersonClick, onAddChild, onAddSpouse, onAddMarriage,
-  expandedMarriages: expandedMarriagesProp,
-  onToggleMarriage,
   highlightPersonId, highlightPath, issuePersonIds, darkMode = false,
 }, forwardedRef) {
   const svgRef   = useRef<SVGSVGElement>(null)
@@ -284,17 +285,6 @@ const FamilyTree = forwardRef<SVGSVGElement, FamilyTreeProps>(function FamilyTre
   useImperativeHandle(forwardedRef, () => svgRef.current as SVGSVGElement)
 
   const [collapsed,          setCollapsed]          = useState<Set<string>>(new Set())
-  const [expandedMarriagesInternal, setExpandedMarriagesInternal] = useState<Set<string>>(new Set())
-  // Allow external control via prop, or fall back to internal state
-  const expandedMarriages = expandedMarriagesProp ?? expandedMarriagesInternal
-  const toggleMarriage = (familyId: string) => {
-    if (onToggleMarriage) { onToggleMarriage(familyId); return }
-    setExpandedMarriagesInternal(prev => {
-      const next = new Set(prev)
-      next.has(familyId) ? next.delete(familyId) : next.add(familyId)
-      return next
-    })
-  }
 
   // ── Main draw effect ──────────────────────────────────────────
   useEffect(() => {
@@ -316,7 +306,7 @@ const FamilyTree = forwardRef<SVGSVGElement, FamilyTreeProps>(function FamilyTre
     const svg = d3.select(el)
     svg.selectAll('*').remove()
 
-    const tree = buildTree(doc, collapsed, expandedMarriages)
+    const tree = buildTree(doc, collapsed)
     if (!tree) {
       svg.attr('width', '100%').attr('height', '100%')
       return
@@ -326,27 +316,56 @@ const FamilyTree = forwardRef<SVGSVGElement, FamilyTreeProps>(function FamilyTre
     const root      = d3.tree<TreeNode>()
       .nodeSize([NODE_W, NODE_H])
       .separation((a, b) => {
-        // b is right of a — give extra space when b has expanded secondary spouses (extend left)
-        const bExtra = b.data.extraFamilies.filter(ef => expandedMarriages.has(ef.familyId)).length
-        const base   = a.parent === b.parent ? 1 : 2
-        return base + bExtra * SPOUSE_GAP / NODE_W
+        const samePar = a.parent === b.parent
+        const base    = samePar ? 1 : 2
+        // D3 calls sep(rightSibling, leftSibling) for same-parent pairs (a=RIGHT, b=LEFT)
+        // but sep(leftContour, rightContour) for cross-branch pairs (a=LEFT, b=RIGHT).
+        // Secondary wives now extend RIGHT → the LEFT node's secondary wives need gap from RIGHT node.
+        const [right, left] = samePar ? [a, b] : [b, a]
+        const secondary = left.data.extraFamilies.length * 0.5  // each secondary wife adds SPOUSE_GAP/NODE_W
+        const rightBuf  = right.data.spouse ? 0.5 : 0           // right couple: husband shifts center left
+        const leftBuf   = left.data.spouse  ? 0.3 : 0           // left couple: wife extends right 65px
+        return base + secondary + rightBuf + leftBuf
       })(hierarchy)
+
+    // Post-layout: secondary marriage children must sit to the RIGHT of their wife.
+    // D3 centers children under the couple center, unaware of wife x positions,
+    // so secondary children might end up left of their wife → causes crossing edges.
+    root.each(n => {
+      if (!n.children || n.data.extraFamilies.length === 0) return
+      for (let i = 0; i < n.data.extraFamilies.length; i++) {
+        const wifeX  = n.x + SPOUSE_GAP / 2 + (i + 1) * SPOUSE_GAP
+        const offset = i + 1
+        const secKids = n.children.filter(c => c.data.parentFamilyOffset === offset)
+        if (secKids.length === 0) continue
+        const leftmostX = Math.min(...secKids.map(c =>
+          c.data.spouse ? c.x - SPOUSE_GAP / 2 : c.x
+        ))
+        const minAllowed = wifeX + SPOUSE_GAP / 2
+        if (leftmostX < minAllowed) {
+          const delta = minAllowed - leftmostX
+          secKids.forEach(c => c.each(d => { d.x += delta }))
+        }
+      }
+    })
 
     const PAD = 100
     let minX = Infinity
     root.each(n => {
-      const numExpanded = n.data.extraFamilies.filter(ef => expandedMarriages.has(ef.familyId)).length
-      const left = n.data.spouse
-        ? n.x - SPOUSE_GAP / 2 - numExpanded * SPOUSE_GAP - R
-        : n.x - numExpanded * SPOUSE_GAP - R
+      // Secondary wives now extend RIGHT, so leftmost element is always the husband
+      const left = (n.data.spouse ? n.x - SPOUSE_GAP / 2 : n.x) - R
       if (left < minX) minX = left
     })
     root.each(n => { n.x -= minX - PAD })
 
     let maxX = 0, maxY = 0
     root.each(n => {
-      const right = n.data.spouse ? n.x + SPOUSE_GAP / 2 + R : n.x + R
-      maxX = Math.max(maxX, right + PAD)
+      const numExtra = n.data.extraFamilies.length
+      // Rightmost element: last secondary wife (or primary wife if no secondary)
+      const rightmostX = n.data.spouse
+        ? n.x + SPOUSE_GAP / 2 + numExtra * SPOUSE_GAP
+        : n.x + numExtra * SPOUSE_GAP
+      maxX = Math.max(maxX, rightmostX + R + PAD)
       maxY = Math.max(maxY, n.y + R + 80)
     })
     svg.attr('width', maxX).attr('height', maxY + PAD)
@@ -357,8 +376,10 @@ const FamilyTree = forwardRef<SVGSVGElement, FamilyTreeProps>(function FamilyTre
       const px = n.data.spouse ? n.x - SPOUSE_GAP / 2 : n.x
       positions.set(n.data.person.id, { x: px, y: n.y })
       if (n.data.spouse) positions.set(n.data.spouse.id, { x: n.x + SPOUSE_GAP / 2, y: n.y })
+      // Secondary wives extend to the RIGHT of primary wife
+      const primaryWifeX = n.data.spouse ? n.x + SPOUSE_GAP / 2 : n.x
       n.data.extraFamilies.forEach((ef, i) => {
-        if (ef.spouse) positions.set(ef.spouse.id, { x: n.x - SPOUSE_GAP / 2 - (i + 1) * SPOUSE_GAP, y: n.y })
+        if (ef.spouse) positions.set(ef.spouse.id, { x: primaryWifeX + (i + 1) * SPOUSE_GAP, y: n.y })
       })
     })
     posRef.current = positions
@@ -409,19 +430,15 @@ const FamilyTree = forwardRef<SVGSVGElement, FamilyTreeProps>(function FamilyTre
       let sy: number
 
       if (isMultiMarriage) {
-        // Multi-marriage: stem originates from the specific wife's circle
-        // Primary wife (offset=0) is to the right; secondary wives are to the left
-        const hasWife = offset === 0
-          ? !!source.data.spouse
-          : !!source.data.extraFamilies[offset - 1]?.spouse
-        if (hasWife) {
-          sx = offset === 0
-            ? source.x + SPOUSE_GAP / 2                           // primary wife x
-            : source.x - SPOUSE_GAP / 2 - offset * SPOUSE_GAP    // secondary wife x
-          sy = source.y + R                                        // bottom of wife circle
+        if (offset === 0) {
+          // Primary family: stem from couple center, like single-marriage.
+          // Prevents bracket from extending right toward secondary wife area.
+          sx = source.x
+          sy = source.data.spouse ? source.y : source.y + R
         } else {
-          // No wife for this family slot — fall back to midpoint
-          sx = source.x - offset * SPOUSE_GAP
+          // Secondary family: stem from the specific secondary wife's circle.
+          // Layout: wife1 — wife2 — wife3 right of husband.
+          sx = source.x + SPOUSE_GAP / 2 + offset * SPOUSE_GAP
           sy = source.y + R
         }
       } else {
@@ -434,9 +451,13 @@ const FamilyTree = forwardRef<SVGSVGElement, FamilyTreeProps>(function FamilyTre
       const sorted = [...targets].sort((a, b) => personNodeX(a) - personNodeX(b))
 
       const childTopY  = sorted[0].y - R
-      // Secondary marriages stagger their junction lower so their horizontal jog
-      // doesn't visually overlap with the primary family's bracket at the same Y.
-      const junctionY  = (sy + childTopY) / 2 + (isMultiMarriage ? offset * 22 : 0)
+      // Reverse stagger: later wives (higher offset) get HIGHER junctions (shorter stems).
+      // This prevents a later wife's vertical stem from crossing an earlier wife's horizontal
+      // bracket — the earlier wife's bracket sits BELOW all later wifes' junction levels.
+      const staggerK   = isMultiMarriage && offset > 0
+        ? (source.data.extraFamilies.length - offset + 1) * 24
+        : 0
+      const junctionY  = (sy + childTopY) / 2 + staggerK
 
       // Vertical stem from source down to junction
       const stemD = `M ${sx} ${sy} V ${junctionY}`
@@ -481,11 +502,12 @@ const FamilyTree = forwardRef<SVGSVGElement, FamilyTreeProps>(function FamilyTre
         edgeMap.set(`${n.data.person.id}:${n.data.spouse.id}`, d)
         edgeMap.set(`${n.data.spouse.id}:${n.data.person.id}`, d)
       }
+      // Secondary wives are to the RIGHT of primary wife; each connects to the previous wife
       n.data.extraFamilies.forEach((ef, i) => {
-        if (!ef.spouse || !expandedMarriages.has(ef.familyId)) return
-        const personX    = n.x - SPOUSE_GAP / 2
-        const spouseX    = personX - (i + 1) * SPOUSE_GAP
-        const d = `M ${spouseX + R} ${n.y} H ${personX - R}`
+        if (!ef.spouse) return
+        const prevX   = n.x + SPOUSE_GAP / 2 + i * SPOUSE_GAP  // previous wife x (i=0 → primary wife)
+        const spouseX = prevX + SPOUSE_GAP                       // this secondary wife x
+        const d = `M ${prevX + R} ${n.y} H ${spouseX - R}`
         edgeMap.set(`${n.data.person.id}:${ef.spouse.id}`, d)
         edgeMap.set(`${ef.spouse.id}:${n.data.person.id}`, d)
       })
@@ -506,67 +528,27 @@ const FamilyTree = forwardRef<SVGSVGElement, FamilyTreeProps>(function FamilyTre
         drawPerson(nodeLayer, x + SPOUSE_GAP / 2, y, d.spouse, colors, onPersonClick, issuePersonIds?.has(d.spouse.id))
       }
 
-      // Extra marriages (secondary spouses — rendered to the LEFT of primary person)
+      // Extra marriages — rendered to the RIGHT of the primary wife, in order
       d.extraFamilies.forEach((ef, i) => {
-        const isExpanded = expandedMarriages.has(ef.familyId)
-        const spouseX    = personX - (i + 1) * SPOUSE_GAP
-
-        if (isExpanded && ef.spouse) {
-          // Marriage bar: secondary spouse → person
+        // Connect to previous wife (i=0 → primary wife; i>0 → previous secondary wife)
+        const prevX   = x + SPOUSE_GAP / 2 + i * SPOUSE_GAP
+        const spouseX = prevX + SPOUSE_GAP
+        if (ef.spouse) {
           nodeLayer.append('line')
-            .attr('x1', spouseX + R).attr('y1', y)
-            .attr('x2', personX - R).attr('y2', y)
+            .attr('x1', prevX + R).attr('y1', y)
+            .attr('x2', spouseX - R).attr('y2', y)
             .attr('stroke', '#64748b').attr('stroke-width', 2)
-            .attr('stroke-dasharray', '5 3')  // dashed to distinguish from primary
           drawPerson(nodeLayer, spouseX, y, ef.spouse, colors, onPersonClick, issuePersonIds?.has(ef.spouse.id))
-        } else {
-          // Collapsed chip: small circle + label to the left of person
-          const chipX = personX - (i + 1) * (R * 2 + 8) - R
-          const chip = nodeLayer.append('g').attr('data-no-export', 'true')
-            .attr('transform', `translate(${chipX},${y})`)
-            .style('cursor', 'pointer')
-            .on('click', (e: MouseEvent) => { e.stopPropagation(); toggleMarriage(ef.familyId) })
-          chip.append('circle').attr('r', R * 0.6)
-            .attr('fill', colors.surface).attr('stroke', '#94a3b8')
-            .attr('stroke-width', 1.5).attr('stroke-dasharray', '4 2')
-          chip.append('text').attr('text-anchor', 'middle').attr('dy', '0.35em')
-            .attr('font-size', '9px').attr('font-weight', '700').attr('fill', colors.text3)
-            .text(`+${ef.childCount}`)
-          if (ef.spouse) {
-            chip.append('text').attr('y', R * 0.6 + 13).attr('text-anchor', 'middle')
-              .attr('font-size', '9px').attr('fill', colors.text5)
-              .text(ef.spouse.displayName.split(' ').slice(-1)[0])
-          }
         }
       })
-
-      // Multi-marriage expand toggle (▶ button on the left edge of person)
-      if (d.extraFamilies.length > 0) {
-        const anyExpanded = d.extraFamilies.some(ef => expandedMarriages.has(ef.familyId))
-        const toggleX     = personX - R - 12
-        const toggle = nodeLayer.append('g').attr('data-no-export', 'true')
-          .attr('transform', `translate(${toggleX},${y})`)
-          .style('cursor', 'pointer')
-          .on('click', (e: MouseEvent) => {
-            e.stopPropagation()
-            d.extraFamilies.forEach(ef => {
-              if (anyExpanded === expandedMarriages.has(ef.familyId)) toggleMarriage(ef.familyId)
-            })
-          })
-        toggle.append('circle').attr('r', 8)
-          .attr('fill', anyExpanded ? '#dbeafe' : colors.surface)
-          .attr('stroke', '#3b82f6').attr('stroke-width', 1.5)
-        toggle.append('text').attr('text-anchor', 'middle').attr('dy', '0.35em')
-          .attr('font-size', '8px').attr('font-weight', '800').attr('fill', '#3b82f6')
-          .text(anyExpanded ? '◀' : `×${d.extraFamilies.length + 1}`)
-      }
 
       // Primary person
       drawPerson(nodeLayer, personX, y, d.person, colors, onPersonClick, issuePersonIds?.has(d.person.id))
 
       // Collapse / expand badge
       const hasChildren = d.children.length > 0 || d.hiddenCount > 0
-      if (hasChildren) {
+      const showCollapseBadge = hasChildren
+      if (showCollapseBadge) {
         const isCollapsed = d.hiddenCount > 0
         const badge = nodeLayer.append('g').attr('data-no-export', 'true')
           .attr('transform', `translate(${x},${y + R + 58})`)
@@ -592,7 +574,7 @@ const FamilyTree = forwardRef<SVGSVGElement, FamilyTreeProps>(function FamilyTre
 
       // Add-child button
       if (onAddChild) {
-        const btnY = y + R + 58 + (hasChildren ? 26 : 0)
+        const btnY = y + R + 58 + (showCollapseBadge ? 26 : 0)
         const addBtn = nodeLayer.append('g').attr('data-no-export', 'true')
           .attr('transform', `translate(${x},${btnY})`)
           .style('cursor', 'pointer')
@@ -622,7 +604,7 @@ const FamilyTree = forwardRef<SVGSVGElement, FamilyTreeProps>(function FamilyTre
           .text('⊕')
       }
     })
-  }, [doc, collapsed, expandedMarriages, onPersonClick, onAddChild, onAddSpouse, onAddMarriage, issuePersonIds, darkMode])  // darkMode triggers D3 re-read CSS vars
+  }, [doc, collapsed, onPersonClick, onAddChild, onAddSpouse, onAddMarriage, issuePersonIds, darkMode])
 
   // ── Search highlight ring (no full redraw) ───────────────────
   useEffect(() => {

@@ -170,7 +170,7 @@ export function PersonPanel({
               </div>
             )
           })}
-          {onAddMarriage && (
+          {onAddMarriage && allFamilies[0]?.spouseId && (
             <button onClick={() => onAddMarriage(personId)} style={addMarriageBtn}>
               + Thêm hôn nhân
             </button>

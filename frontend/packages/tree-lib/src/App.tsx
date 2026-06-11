@@ -253,6 +253,7 @@ export function App({
         </div>
 
         <div style={{ display: 'flex', gap: 6, ...noDragStyle }}>
+          <button onClick={handleNew}                   style={btn(false)}>Tạo mới</button>
           <button onClick={handleOpen}                  style={btn(false)}>Mở file</button>
           <button onClick={handleSave}                  style={btn(true)}>{saved ? '✓ Đã lưu' : 'Lưu'}</button>
           <button onClick={() => setShowExport(true)}    style={btn(false)}>↓ Xuất</button>
@@ -287,8 +288,6 @@ export function App({
           onAddChild={handleAddChild}
           onAddSpouse={handleAddSpouse}
           onAddMarriage={handleAddMarriage}
-          expandedMarriages={expandedMarriages}
-          onToggleMarriage={handleToggleMarriage}
           darkMode={theme === 'dark'}
         />
         {doc.families.length === 0 && (
