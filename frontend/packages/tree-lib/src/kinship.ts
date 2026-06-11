@@ -126,8 +126,12 @@ function buildLabel(
       // Anh/em của mẹ → Cậu (male) / Dì (female)
       return { label: g(tg, `Cậu${N}`, `Dì${N}`), selfLabel: 'Cháu', ordinal }
     }
-    if (branchRank > 0) return { label: g(tg, `Bác${N}`, `Bác${N}`), selfLabel: 'Cháu', ordinal }
-    return { label: g(tg, `Chú${N}`, `Cô${N}`),                              selfLabel: 'Cháu', ordinal }
+    if (branchRank > 0) {
+      // South: all of father's sisters are "Cô" regardless of seniority.
+      if (region === 'south' && tg === 'female') return { label: `Cô${N}`, selfLabel: 'Cháu', ordinal }
+      return { label: g(tg, `Bác${N}`, `Bác${N}`), selfLabel: 'Cháu', ordinal }
+    }
+    return { label: g(tg, `Chú${N}`, `Cô${N}`), selfLabel: 'Cháu', ordinal }
   }
 
   // ── Same generation ──────────────────────────────────────────
@@ -304,7 +308,16 @@ export function computeKinship(
     for (const lcaUnit of lcaFamilies) {
       const vi = lcaUnit.childIds.indexOf(vChild)
       const ti = lcaUnit.childIds.indexOf(tChild)
-      if (vi !== -1 && ti !== -1) { branchRank = vi - ti; break }
+      if (vi !== -1 && ti !== -1) {
+        const vy = idx.personMap.get(vChild)?.birthDate?.year
+        const ty = idx.personMap.get(tChild)?.birthDate?.year
+        // Prefer birth-year comparison; childIds order as fallback.
+        // Positive branchRank = viewer's ancestor is younger = target is senior (Bác).
+        branchRank = (vy !== undefined && ty !== undefined && vy !== ty)
+          ? vy - ty
+          : vi - ti
+        break
+      }
     }
     // Cross-family case: vChild and tChild are children of *different* FamilyUnits
     // of the same LCA person (e.g. uncle/nephew via different wives of same father).
@@ -335,11 +348,16 @@ export function computeKinship(
     branchRank = (vPF.marriageOrder ?? 1) - (tPF.marriageOrder ?? 1)
   }
 
-  // Ordinal: target's position among their siblings
+  // Ordinal: target's rank among siblings, sorted by birth year (fallback: childIds order)
   let ordinal: string | undefined
   if (tPF) {
-    const ti = tPF.childIds.indexOf(bloodTargetId)
-    if (ti !== -1) ordinal = getSiblingOrdinal(ti, ti === tPF.childIds.length - 1, region)
+    const sorted = [...tPF.childIds].sort((a, b) => {
+      const ay = idx.personMap.get(a)?.birthDate?.year ?? Infinity
+      const by = idx.personMap.get(b)?.birthDate?.year ?? Infinity
+      return ay - by
+    })
+    const ti = sorted.indexOf(bloodTargetId)
+    if (ti !== -1) ordinal = getSiblingOrdinal(ti, sorted.length > 1 && ti === sorted.length - 1, region)
   }
 
   // viewer.gender (not effectiveViewer) is used for selfLabel — dâu/rể xưng theo giới tính thật
