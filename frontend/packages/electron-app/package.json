@@ -37,6 +37,7 @@
       "!out/**/*.map"
     ],
     "mac": {
+      "icon": "resources/icon.icns",
       "target": [
         {
           "target": "dmg",
@@ -49,6 +50,7 @@
       "category": "public.app-category.productivity"
     },
     "win": {
+      "icon": "resources/icon.png",
       "target": [
         {
           "target": "nsis",
@@ -59,6 +61,7 @@
       ]
     },
     "linux": {
+      "icon": "resources/icon.png",
       "target": [
         {
           "target": "AppImage",
