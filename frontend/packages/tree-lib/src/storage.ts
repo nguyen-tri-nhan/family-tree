@@ -7,29 +7,33 @@ export interface RecentFile {
   openedAt: string  // ISO 8601
 }
 
+export interface WorkspaceEntry {
+  id: string          // web: 'family.ftree'; electron: '/Users/.../family.ftree'
+  displayName: string // filename without .ftree, updated to clan.name after load
+  updatedAt?: string  // ISO 8601
+}
+
 export interface IStorageAdapter {
   readonly platform: 'web' | 'electron'
 
-  // Có session đang mở không?
+  // Session (single-file mode)
   hasSession(): boolean
-
-  // Load FtreeDocument từ storage hiện tại
   load(): Promise<FtreeDocument>
-
-  // Ghi FtreeDocument vào storage hiện tại
   save(doc: FtreeDocument): Promise<void>
-
-  // Mở file picker → load và set session
   openFile(): Promise<FtreeDocument>
-
-  // Tạo session mới (file rỗng)
   newFile(): Promise<void>
-
-  // Export file ra ngoài (web: download, electron: copy)
   exportFile(doc: FtreeDocument): Promise<void>
-
-  // Danh sách file gần đây (web trả về [])
   getRecentFiles(): Promise<RecentFile[]>
+
+  // Workspace (folder mode)
+  hasWorkspace(): boolean
+  getWorkspaceName(): string | null
+  getWorkspaceFiles(): Promise<WorkspaceEntry[]>   // lazy-loads stored workspace on first call
+  openWorkspace(): Promise<WorkspaceEntry[]>        // shows folder picker
+  openFromWorkspace(id: string): Promise<FtreeDocument>
+  createInWorkspace(name: string): Promise<{ id: string; doc: FtreeDocument }>
+  deleteFromWorkspace(id: string): Promise<void>
+  renameInWorkspace(id: string, newName: string): Promise<void>
 }
 
 // ── React Context ───────────────────────────────────────────────
