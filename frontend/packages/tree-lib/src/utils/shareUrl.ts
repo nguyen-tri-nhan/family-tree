@@ -1,5 +1,8 @@
 import type { FtreeDocument } from '../types'
 import { isValidDocument } from '../document'
+import { compactEncode, compactDecode } from './compact'
+
+const COMPACT_PREFIX = 'z'
 
 async function compress(data: string): Promise<string> {
   const stream = new CompressionStream('deflate-raw')
@@ -45,12 +48,20 @@ async function decompress(encoded: string): Promise<string> {
 const OVERSIZED_THRESHOLD = 4000
 
 export async function encodeTree(doc: FtreeDocument): Promise<{ encoded: string; oversized: boolean }> {
-  const encoded = await compress(JSON.stringify(doc))
-  return { encoded, oversized: encoded.length > OVERSIZED_THRESHOLD }
+  let raw: string
+  try {
+    raw = COMPACT_PREFIX + await compress(compactEncode(doc))
+  } catch {
+    raw = await compress(JSON.stringify(doc))
+  }
+  return { encoded: raw, oversized: raw.length > OVERSIZED_THRESHOLD }
 }
 
 export async function decodeTree(encoded: string): Promise<FtreeDocument> {
-  const json = await decompress(encoded)
+  const isCompact = encoded[0] === COMPACT_PREFIX
+  const data = isCompact ? encoded.slice(1) : encoded
+  const json = await decompress(data)
+  if (isCompact) return compactDecode(json)
   const raw = JSON.parse(json)
   if (!isValidDocument(raw)) throw new Error('Dữ liệu chia sẻ không hợp lệ')
   return raw as FtreeDocument
