@@ -11,9 +11,13 @@ Available on **Web** (Vercel) and **Desktop** (Windows / macOS).
 ## Features
 
 - Multi-generation, multi-branch family trees
-- Automatic kinship labeling (Uncle, Aunt, Cousin… dialect-aware for Northern/Southern Vietnamese)
+- Automatic kinship labeling (dialect-aware for Northern/Southern Vietnamese)
 - Lunar and solar calendar support
 - Export to PNG / PDF
+- URL sharing — encode entire tree into a shareable link (read-only)
+- Folder workspace — manage multiple `.ftree` files in a local folder (Web FSA / Electron native)
+- Drag & drop `.ftree` files into the app to import into the active workspace
+- Kinship quiz — interactive game to learn family relationships
 - Web app + Desktop app (Windows/macOS) sharing the same codebase
 
 ---
@@ -63,18 +67,27 @@ classDiagram
     +newFile() Promise~void~
     +exportFile(doc) Promise~void~
     +getRecentFiles() Promise~RecentFile[]~
+    +hasWorkspace() bool
+    +getWorkspaceName() string
+    +getWorkspaceFiles() Promise~WorkspaceEntry[]~
+    +openWorkspace() Promise~WorkspaceEntry[]~
+    +openFromWorkspace(id) Promise~FtreeDocument~
+    +createInWorkspace(name) Promise~id, doc~
+    +deleteFromWorkspace(id) Promise~void~
+    +renameInWorkspace(id, newName) Promise~void~
   }
 
   class WebAdapter {
-    localStorage cache
-    File input picker
-    Blob download
+    File System Access API
+    IndexedDB (folder handle)
+    localStorage fallback
   }
 
   class ElectronAdapter {
     window.api IPC bridge
     Native file dialog
     Atomic write (.tmp → rename)
+    prefs.json (workspace folder)
   }
 
   IStorageAdapter <|-- WebAdapter
@@ -84,7 +97,8 @@ classDiagram
 | Action | WebAdapter | ElectronAdapter |
 |---|---|---|
 | Open file | `<input type="file">` | `dialog.showOpenDialog` |
-| Save | `localStorage` + download | `writeFileSync` atomic |
+| Save (single) | `localStorage` + download | `writeFileSync` atomic |
+| Workspace | File System Access API + IndexedDB | Native folder dialog + `prefs.json` |
 | Recent files | Not supported | `prefs.json` in userData |
 
 ---
@@ -258,8 +272,11 @@ Full UTF-8/Unicode support. Files can be opened in any text editor for debugging
 
 | File | Description |
 |---|---|
-| [specs/plan.md](specs/plan.md) | Project plan and tech stack |
-| [specs/data.md](specs/data.md) | Detailed data model |
-| [specs/design.md](specs/design.md) | IStorageAdapter pattern |
-| [specs/impl-v1.md](specs/impl-v1.md) | v1 implementation plan + .ftree schema |
+| [specs/data.md](specs/data.md) | Detailed data model + .ftree schema |
 | [specs/render.md](specs/render.md) | Render strategy by node count |
+| [specs/storage.md](specs/storage.md) | Storage adapter pattern + file operations |
+| [specs/workspace.md](specs/workspace.md) | Multi-file folder workspace |
+| [specs/kinship-vietnam.md](specs/kinship-vietnam.md) | Vietnamese kinship terminology |
+| [specs/quiz.md](specs/quiz.md) | Kinship quiz feature |
+| [specs/usecase.md](specs/usecase.md) | Use case documentation |
+| [specs/backlog.md](specs/backlog.md) | Feature backlog |
