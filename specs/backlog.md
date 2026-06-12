@@ -29,7 +29,7 @@ Cập nhật: 2026-06-10
 | D4 | Đa hôn nhân (đa thê + ly hôn/tái hôn) | multi-marriage.md | 🟡 Vừa | Planned |
 | **App / Legal** | | | | |
 | A1 | Điều khoản sử dụng (modal + /#/terms) | terms.md | 🔴 Cao | Planned |
-| A2 | Quiz trắc nghiệm xưng hô | quiz.md | 🟡 Vừa | Planned |
+| A2 | Quiz trắc nghiệm xưng hô | quiz.md | — | ✅ Done |
 | A3 | About page + hash routing | enhancement-v3.md §4 | — | ✅ Done |
 | **☁ Cloud / Phase 2** | | | | |
 | C1 | Ảnh cloud — upload + lưu trữ server | enhancement-v3.md §5 (V4+) | ⚪ Cloud | Deferred |
@@ -49,7 +49,7 @@ Cập nhật: 2026-06-10
 5. **U4** — Recent files web
 6. **D1** — Tag Thủy Tổ, nhỏ
 7. **D2** — Ảnh remote URL
-8. **A2** — Quiz, sau khi kinship ổn định
+8. ~~**A2** — Quiz~~ ✅ Done
 
 ### Long-term / Deferred
 9. **D3** — Multi-root (lớn, cần UX research)

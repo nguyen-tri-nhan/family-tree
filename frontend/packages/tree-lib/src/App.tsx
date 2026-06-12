@@ -10,6 +10,7 @@ import type { Region } from './kinship'
 import { validateDocument } from './utils/validateTree'
 import { ClanForm }       from './components/ClanForm'
 import { ExportDialog }   from './components/ExportDialog'
+import { QuizPanel }      from './components/QuizPanel'
 import { useStorage }     from './storage'
 import { deletePerson, addMarriage } from './mutations'
 import type { FtreeDocument } from './types'
@@ -60,6 +61,7 @@ export function App({
   const [editMode,           setEditMode]           = useState(false)
   const [readOnly,           setReadOnly]           = useState(false)
   const [shareToast,         setShareToast]         = useState(false)
+  const [quizPlayerId,       setQuizPlayerId]       = useState<string | null>(null)
 
   // ── Theme toggle ──────────────────────────────────────────────
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -378,6 +380,11 @@ export function App({
             setShowExport(true)
             setSelected(null)
           }}
+          onQuiz={id => {
+            setQuizPlayerId(id)
+            setKinshipPair(null)
+            setSelected(null)
+          }}
         />
       )}
 
@@ -396,6 +403,15 @@ export function App({
           personAId={kinshipPair.a}
           personBId={kinshipPair.b}
           onClose={() => setKinshipPair(null)}
+        />
+      )}
+
+      {quizPlayerId && (
+        <QuizPanel
+          doc={doc}
+          playerId={quizPlayerId}
+          onHighlight={setHighlight}
+          onClose={() => { setQuizPlayerId(null); setHighlight(undefined) }}
         />
       )}
 
