@@ -10,9 +10,12 @@ import type { Region } from './kinship'
 import { validateDocument } from './utils/validateTree'
 import { ClanForm }       from './components/ClanForm'
 import { ExportDialog }   from './components/ExportDialog'
+import { QuizPanel }      from './components/QuizPanel'
+import { ShareDialog }    from './components/ShareDialog'
 import { useStorage }     from './storage'
 import { deletePerson, addMarriage } from './mutations'
 import type { FtreeDocument } from './types'
+import { encodeTree, decodeTree } from './utils/shareUrl'
 
 type FormMode =
   | { type: 'add-root' }
@@ -31,6 +34,7 @@ export interface AppProps {
   onHeaderDoubleClick?:  (e: React.MouseEvent<HTMLElement>) => void
   welcomeFooter?:        React.ReactNode
   onAbout?:              () => void
+  shareBaseUrl?:         string   // e.g. "https://caygiapha.app" — enables share on Electron
 }
 
 export function App({
@@ -39,6 +43,7 @@ export function App({
   onHeaderDoubleClick,
   welcomeFooter,
   onAbout,
+  shareBaseUrl,
 }: AppProps) {
   const storage = useStorage()
   const treeRef = useRef<SVGSVGElement>(null)
@@ -54,8 +59,14 @@ export function App({
   const [showClanForm,       setShowClanForm]       = useState(false)
   const [showIssues,         setShowIssues]         = useState(false)
   const [showExport,         setShowExport]         = useState(false)
+  const [exportScopePersonId, setExportScopePersonId] = useState<string | null>(null)
   const [expandedMarriages,  setExpandedMarriages]  = useState<Set<string>>(new Set())
   const [editMode,           setEditMode]           = useState(false)
+  const [readOnly,           setReadOnly]           = useState(false)
+  const [showShare,          setShowShare]          = useState(false)
+  const [shareUrl,           setShareUrl]           = useState('')
+  const [shareOversized,     setShareOversized]     = useState(false)
+  const [quizPlayerId,       setQuizPlayerId]       = useState<string | null>(null)
 
   // ── Theme toggle ──────────────────────────────────────────────
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -70,11 +81,31 @@ export function App({
   const toggleTheme = useCallback(() => setTheme(t => t === 'dark' ? 'light' : 'dark'), [])
 
   useEffect(() => {
+    const hash = window.location.hash
+    const shareParam = new URLSearchParams(
+      hash.includes('?') ? hash.slice(hash.indexOf('?')) : ''
+    ).get('share')
+    if (shareParam) {
+      decodeTree(shareParam)
+        .then(d => { setDoc(d); setReadOnly(true) })
+        .catch(() => alert('Link chia sẻ không hợp lệ hoặc bị lỗi'))
+      history.replaceState(null, '', window.location.pathname + '#/')
+      return
+    }
     storage.getRecentFiles().then(setRecent).catch(console.error)
     if (storage.hasSession()) {
       storage.load().then(setDoc).catch(console.error)
     }
   }, [storage])
+
+  async function handleShare() {
+    if (!doc) return
+    const { encoded, oversized } = await encodeTree(doc)
+    const base = shareBaseUrl ?? (window.location.origin + window.location.pathname)
+    setShareUrl(`${base}#/?share=${encoded}`)
+    setShareOversized(oversized)
+    setShowShare(true)
+  }
 
   useEffect(() => {
     if (!compareMode.active) return
@@ -254,20 +285,29 @@ export function App({
         </div>
 
         <div style={{ display: 'flex', gap: 6, ...noDragStyle }}>
-          <button onClick={() => setEditMode(m => !m)} style={editMode ? btnActive : btn(false)}>
-            {editMode ? '✓ Xong' : '✏ Sửa'}
-          </button>
-          <button onClick={handleNew}                   style={btn(false)}>Tạo mới</button>
-          <button onClick={handleOpen}                  style={btn(false)}>Mở file</button>
-          <button onClick={handleSave}                  style={btn(true)}>{saved ? '✓ Đã lưu' : 'Lưu'}</button>
-          <button onClick={() => setShowExport(true)}    style={btn(false)}>↓ Xuất</button>
-          <button onClick={() => setShowClanForm(true)} style={btn(false)}>⚙</button>
-          {issues.length > 0 && (
-            <button onClick={() => setShowIssues(true)} style={issueBtn(errorCount > 0)}>
-              {errorCount > 0 ? `■ ${errorCount} lỗi` : `▲ ${warningCount}`}
-            </button>
+          {!readOnly && (
+            <>
+              <button onClick={() => setEditMode(m => !m)} style={editMode ? btnActive : btn(false)}>
+                {editMode ? '✓ Xong' : '✏ Sửa'}
+              </button>
+              <button onClick={handleNew}  style={btn(false)}>Tạo mới</button>
+              <button onClick={handleOpen} style={btn(false)}>Mở file</button>
+              <button onClick={handleSave} style={btn(true)}>{saved ? '✓ Đã lưu' : 'Lưu'}</button>
+            </>
           )}
-          <button onClick={toggleTheme}                 style={btn(false)} title={theme === 'dark' ? 'Chuyển sang sáng' : 'Chuyển sang tối'}>{theme === 'dark' ? '☀' : '🌙'}</button>
+          <button onClick={() => { setExportScopePersonId(null); setShowExport(true) }} style={btn(false)}>↓ Xuất</button>
+          <button onClick={handleShare} style={btn(false)}>↗ Chia sẻ</button>
+          {!readOnly && (
+            <>
+              <button onClick={() => setShowClanForm(true)} style={btn(false)}>⚙</button>
+              {issues.length > 0 && (
+                <button onClick={() => setShowIssues(true)} style={issueBtn(errorCount > 0)}>
+                  {errorCount > 0 ? `■ ${errorCount} lỗi` : `▲ ${warningCount}`}
+                </button>
+              )}
+            </>
+          )}
+          <button onClick={toggleTheme} style={btn(false)} title={theme === 'dark' ? 'Chuyển sang sáng' : 'Chuyển sang tối'}>{theme === 'dark' ? '☀' : '🌙'}</button>
           {onAbout && (
             <button onClick={onAbout} style={btn(false)} title="Về ứng dụng">ⓘ</button>
           )}
@@ -281,7 +321,17 @@ export function App({
         </div>
       )}
 
-      <div style={{ paddingTop: compareMode.active ? 84 : 48, position: 'relative' }}>
+      {readOnly && (
+        <div style={shareBanner}>
+          <span>Bạn đang xem bản chia sẻ</span>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button onClick={() => setReadOnly(false)} style={cancelBtn}>✏ Sửa bản sao</button>
+            <button onClick={() => storage.exportFile(doc)} style={cancelBtn}>↓ Tải về .ftree</button>
+          </div>
+        </div>
+      )}
+
+      <div style={{ paddingTop: compareMode.active || readOnly ? 84 : 48, position: 'relative' }}>
         <FamilyTree
           ref={treeRef}
           document={doc}
@@ -322,6 +372,16 @@ export function App({
             setCompareMode({ active: true, firstPersonId: selectedPerson })
             setSelected(null)
           }}
+          onExportBranch={id => {
+            setExportScopePersonId(id)
+            setShowExport(true)
+            setSelected(null)
+          }}
+          onQuiz={id => {
+            setQuizPlayerId(id)
+            setKinshipPair(null)
+            setSelected(null)
+          }}
         />
       )}
 
@@ -340,6 +400,15 @@ export function App({
           personAId={kinshipPair.a}
           personBId={kinshipPair.b}
           onClose={() => setKinshipPair(null)}
+        />
+      )}
+
+      {quizPlayerId && (
+        <QuizPanel
+          doc={doc}
+          playerId={quizPlayerId}
+          onHighlight={setHighlight}
+          onClose={() => { setQuizPlayerId(null); setHighlight(undefined) }}
         />
       )}
 
@@ -363,7 +432,16 @@ export function App({
         <ExportDialog
           svgEl={treeRef.current}
           doc={doc}
-          onClose={() => setShowExport(false)}
+          initialScopePersonId={exportScopePersonId ?? undefined}
+          onClose={() => { setShowExport(false); setExportScopePersonId(null) }}
+        />
+      )}
+
+      {showShare && (
+        <ShareDialog
+          url={shareUrl}
+          oversized={shareOversized}
+          onClose={() => setShowShare(false)}
         />
       )}
     </div>
@@ -379,6 +457,13 @@ const emptyState: React.CSSProperties = {
 const compareBanner: React.CSSProperties = {
   position: 'fixed', top: 48, left: 0, right: 0, zIndex: 9,
   background: '#0891b2', color: '#fff',
+  padding: '8px 20px', fontSize: 13, fontWeight: 600,
+  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+}
+
+const shareBanner: React.CSSProperties = {
+  position: 'fixed', top: 48, left: 0, right: 0, zIndex: 9,
+  background: '#7c3aed', color: '#fff',
   padding: '8px 20px', fontSize: 13, fontWeight: 600,
   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
 }

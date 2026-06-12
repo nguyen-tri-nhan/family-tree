@@ -12,7 +12,7 @@
     "paths": {
       "@family-tree/tree-lib": ["../tree-lib/src/index.ts"]
     },
-    "types": ["electron", "node"]
+    "types": ["electron", "node", "vite/client"]
   },
   "include": ["src"]
 }

@@ -1,6 +1,6 @@
 {
   "name": "@family-tree/tree-lib",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "type": "module",
   "main": "dist/tree-lib.js",
   "module": "dist/tree-lib.js",
@@ -30,7 +30,8 @@
   "dependencies": {
     "jspdf": "^2.5.2",
     "lunar-date-vn": "^1.0.6",
-    "react-router-dom": "^7.17.0"
+    "react-router-dom": "^7.17.0",
+    "uqr": "^0.1.3"
   },
   "devDependencies": {
     "@types/d3": "^7.4.3",
