@@ -57,6 +57,8 @@ jobs:
           npx electron-vite build
           npx electron-builder --publish never
         working-directory: frontend/packages/electron-app
+        env:
+          VITE_SHARE_BASE_URL: ${{ vars.SHARE_BASE_URL }}
 
       - name: Save artifact
         uses: actions/upload-artifact@v4

@@ -11,6 +11,7 @@ import { validateDocument } from './utils/validateTree'
 import { ClanForm }       from './components/ClanForm'
 import { ExportDialog }   from './components/ExportDialog'
 import { QuizPanel }      from './components/QuizPanel'
+import { ShareDialog }    from './components/ShareDialog'
 import { useStorage }     from './storage'
 import { deletePerson, addMarriage } from './mutations'
 import type { FtreeDocument } from './types'
@@ -33,6 +34,7 @@ export interface AppProps {
   onHeaderDoubleClick?:  (e: React.MouseEvent<HTMLElement>) => void
   welcomeFooter?:        React.ReactNode
   onAbout?:              () => void
+  shareBaseUrl?:         string   // e.g. "https://caygiapha.app" — enables share on Electron
 }
 
 export function App({
@@ -41,6 +43,7 @@ export function App({
   onHeaderDoubleClick,
   welcomeFooter,
   onAbout,
+  shareBaseUrl,
 }: AppProps) {
   const storage = useStorage()
   const treeRef = useRef<SVGSVGElement>(null)
@@ -60,7 +63,9 @@ export function App({
   const [expandedMarriages,  setExpandedMarriages]  = useState<Set<string>>(new Set())
   const [editMode,           setEditMode]           = useState(false)
   const [readOnly,           setReadOnly]           = useState(false)
-  const [shareToast,         setShareToast]         = useState(false)
+  const [showShare,          setShowShare]          = useState(false)
+  const [shareUrl,           setShareUrl]           = useState('')
+  const [shareOversized,     setShareOversized]     = useState(false)
   const [quizPlayerId,       setQuizPlayerId]       = useState<string | null>(null)
 
   // ── Theme toggle ──────────────────────────────────────────────
@@ -96,14 +101,10 @@ export function App({
   async function handleShare() {
     if (!doc) return
     const { encoded, oversized } = await encodeTree(doc)
-    if (oversized) {
-      const go = confirm(`URL khá dài (${encoded.length} ký tự) — một số ứng dụng có thể không mở được.\nVẫn copy?`)
-      if (!go) return
-    }
-    const url = `${window.location.origin}${window.location.pathname}#/?share=${encoded}`
-    await navigator.clipboard.writeText(url)
-    setShareToast(true)
-    setTimeout(() => setShareToast(false), 2500)
+    const base = shareBaseUrl ?? (window.location.origin + window.location.pathname)
+    setShareUrl(`${base}#/?share=${encoded}`)
+    setShareOversized(oversized)
+    setShowShare(true)
   }
 
   useEffect(() => {
@@ -295,11 +296,7 @@ export function App({
             </>
           )}
           <button onClick={() => { setExportScopePersonId(null); setShowExport(true) }} style={btn(false)}>↓ Xuất</button>
-          {storage.platform === 'web' && (
-            <button onClick={handleShare} style={shareToast ? btnActive : btn(false)}>
-              {shareToast ? '✓ Đã copy' : '↗ Chia sẻ'}
-            </button>
-          )}
+          <button onClick={handleShare} style={btn(false)}>↗ Chia sẻ</button>
           {!readOnly && (
             <>
               <button onClick={() => setShowClanForm(true)} style={btn(false)}>⚙</button>
@@ -437,6 +434,14 @@ export function App({
           doc={doc}
           initialScopePersonId={exportScopePersonId ?? undefined}
           onClose={() => { setShowExport(false); setExportScopePersonId(null) }}
+        />
+      )}
+
+      {showShare && (
+        <ShareDialog
+          url={shareUrl}
+          oversized={shareOversized}
+          onClose={() => setShowShare(false)}
         />
       )}
     </div>
