@@ -606,6 +606,23 @@ const FamilyTree = forwardRef<SVGSVGElement, FamilyTreeProps>(function FamilyTre
     })
   }, [doc, collapsed, onPersonClick, onAddChild, onAddSpouse, onAddMarriage, issuePersonIds, darkMode])
 
+  // ── Auto-expand collapsed nodes that are part of highlight path ─
+  useEffect(() => {
+    if (!highlightPath || highlightPath.length === 0) return
+    const missing = highlightPath.filter(id => !posRef.current.has(id))
+    if (missing.length === 0) return
+    const childToParent = new Map<string, string>()
+    doc.families.forEach(f => f.childIds.forEach(cid => childToParent.set(cid, f.id)))
+    setCollapsed(prev => {
+      const next = new Set(prev)
+      missing.forEach(id => {
+        const famId = childToParent.get(id)
+        if (famId) next.delete(famId)
+      })
+      return next
+    })
+  }, [highlightPath, doc])
+
   // ── Search highlight ring (no full redraw) ───────────────────
   useEffect(() => {
     const hg = hlGRef.current
@@ -665,7 +682,7 @@ const FamilyTree = forwardRef<SVGSVGElement, FamilyTreeProps>(function FamilyTre
         .attr('stroke', isEndpoint ? '#6366f1' : '#a5b4fc')
         .attr('stroke-width', isEndpoint ? 2.5 : 1.5)
     })
-  }, [highlightPath, doc])
+  }, [highlightPath, doc, collapsed])
 
   // ── Pan to highlighted node ───────────────────────────────────
   useEffect(() => {

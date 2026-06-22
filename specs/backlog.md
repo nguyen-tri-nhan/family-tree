@@ -2,7 +2,7 @@
 
 Consolidated backlog. Chi tiết từng mục xem ở file spec tương ứng.
 
-Cập nhật: 2026-06-10
+Cập nhật: 2026-06-22
 
 ---
 
@@ -18,9 +18,9 @@ Cập nhật: 2026-06-10
 | K5 | Ông Cố / Bà Cố nội/ngoại | enhancement-v3.md §3 | — | ✅ Done |
 | K6 | Custom xưng hô — per-pair + clan-wide rules | enhancement-v3.md §1 | 🟡 Vừa | Planned |
 | **UX** | | | | |
-| U1 | §7a Highlight path khi collapse (auto-expand) | enhancement-v3.md §7 | 🔴 Cao | Planned |
-| U2 | §7b Chọn node collapse qua SearchBar | enhancement-v3.md §7 | 🔴 Cao | Planned |
-| U3 | UI warning 200 người (badge + disable) | enhancement-v3.md §8 | 🟡 Vừa | Planned |
+| U1 | §7a Highlight path khi collapse (auto-expand) | enhancement-v3.md §7 | 🔴 Cao | ✅ Done |
+| U2 | §7b Chọn node collapse qua SearchBar | enhancement-v3.md §7 | 🔴 Cao | ✅ Done |
+| U3 | UI warning 200 người (badge + disable) | enhancement-v3.md §8 | 🟡 Vừa | ✅ Done |
 | U4 | Recent files trên web (File System Access API) | enhancement-v3.md §6 | 🟡 Vừa | Planned |
 | **Data / Tree** | | | | |
 | D1 | Tag vai trò: Thủy Tổ, Khai Tổ, Trưởng Bối, Trưởng Họ, Trưởng Tộc | enhancement-v3.md §2 | 🟢 Thấp | Planned |
@@ -28,7 +28,7 @@ Cập nhật: 2026-06-10
 | D3 | Multi-root / nhiều dòng họ | enhancement-v3.md §9 | 🟢 Thấp | Deferred |
 | D4 | Đa hôn nhân (đa thê + ly hôn/tái hôn) | multi-marriage.md | 🟡 Vừa | Planned |
 | **App / Legal** | | | | |
-| A1 | Điều khoản sử dụng (modal + /#/terms) | terms.md | 🔴 Cao | Planned |
+| A1 | Điều khoản sử dụng (modal + /#/terms) | terms.md | 🔴 Cao | ✅ Done |
 | A2 | Quiz trắc nghiệm xưng hô | quiz.md | — | ✅ Done |
 | A3 | About page + hash routing | enhancement-v3.md §4 | — | ✅ Done |
 | **☁ Cloud / Phase 2** | | | | |
