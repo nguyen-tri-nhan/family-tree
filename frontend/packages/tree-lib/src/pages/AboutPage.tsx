@@ -44,9 +44,17 @@ export function AboutPage() {
 
         <hr style={divider} />
 
-        <p style={{ margin: 0, fontSize: 11, color: 'var(--t-text-5)', textAlign: 'center' }}>
-          Dùng cho mục đích cá nhân và gia đình
-        </p>
+        <div style={{ textAlign: 'center' }}>
+          <button
+            onClick={() => navigate('/terms')}
+            style={termsLink}
+          >
+            Điều khoản sử dụng
+          </button>
+          <p style={{ margin: '10px 0 0', fontSize: 11, color: 'var(--t-text-5)' }}>
+            Dùng cho mục đích cá nhân và gia đình
+          </p>
+        </div>
       </div>
     </div>
   )
@@ -125,6 +133,16 @@ const contactLink: React.CSSProperties = {
   padding:        '6px 8px',
   margin:         '0 -8px',
   transition:     'background 0.15s',
+}
+
+const termsLink: React.CSSProperties = {
+  background:     'none',
+  border:         'none',
+  cursor:         'pointer',
+  fontSize:       12,
+  color:          'var(--t-text-4)',
+  textDecoration: 'underline',
+  padding:        0,
 }
 
 function iconBox(isLinkedIn?: boolean): React.CSSProperties {
