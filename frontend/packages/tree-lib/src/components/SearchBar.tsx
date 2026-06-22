@@ -3,11 +3,12 @@ import type { FtreeDocument } from '../types'
 import { normalizeVi } from '../utils/normalizeVi'
 
 interface SearchBarProps {
-  doc:      FtreeDocument
-  onSelect: (personId: string) => void
+  doc:          FtreeDocument
+  onSelect:     (personId: string) => void
+  placeholder?: string
 }
 
-export function SearchBar({ doc, onSelect }: SearchBarProps) {
+export function SearchBar({ doc, onSelect, placeholder }: SearchBarProps) {
   const [query, setQuery] = useState('')
   const [open,  setOpen]  = useState(false)
 
@@ -38,7 +39,7 @@ export function SearchBar({ doc, onSelect }: SearchBarProps) {
           onChange={e => { setQuery(e.target.value); setOpen(true) }}
           onFocus={() => setOpen(true)}
           onBlur={() => setTimeout(() => setOpen(false), 150)}
-          placeholder="Tìm người…"
+          placeholder={placeholder ?? 'Tìm người…'}
           style={inputStyle}
         />
         {query && (

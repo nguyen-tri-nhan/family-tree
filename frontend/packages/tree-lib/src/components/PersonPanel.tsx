@@ -5,6 +5,7 @@ interface PersonPanelProps {
   personId:          string
   doc:               FtreeDocument
   editMode?:         boolean
+  atLimit?:          boolean
   onClose:           () => void
   onEdit:            (personId: string) => void
   onDelete:          (personId: string) => void
@@ -20,7 +21,7 @@ interface PersonPanelProps {
 }
 
 export function PersonPanel({
-  personId, doc, editMode = false, onClose, onEdit, onDelete, onAddChild, onAddSpouse,
+  personId, doc, editMode = false, atLimit = false, onClose, onEdit, onDelete, onAddChild, onAddSpouse,
   onAddParent, onAddMarriage, onCompare, onExportBranch, onQuiz, expandedMarriages, onToggleMarriage,
 }: PersonPanelProps) {
   const { personMap, familiesByPerson, childToParentFamily, familyBySpouse } = buildIndex(doc)
@@ -166,10 +167,10 @@ export function PersonPanel({
                     ? `${f.childIds.length} con`
                     : 'Chưa có con'}
                   {editMode && !spouse && (
-                    <button onClick={() => onAddSpouse(f.id)} style={inlineLink}>⊕ Thêm vợ/chồng</button>
+                    <button onClick={() => !atLimit && onAddSpouse(f.id)} disabled={atLimit} style={atLimit ? { ...inlineLink, opacity: 0.4, cursor: 'not-allowed' } : inlineLink}>⊕ Thêm vợ/chồng</button>
                   )}
                   {editMode && (
-                    <button onClick={() => onAddChild(f.id)} style={inlineLink}>+ Thêm con</button>
+                    <button onClick={() => !atLimit && onAddChild(f.id)} disabled={atLimit} style={atLimit ? { ...inlineLink, opacity: 0.4, cursor: 'not-allowed' } : inlineLink}>+ Thêm con</button>
                   )}
                 </div>
               </div>
@@ -186,8 +187,8 @@ export function PersonPanel({
       {/* Actions */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 16, paddingTop: 14, borderTop: '1px solid var(--t-border)' }}>
         {editMode && onAddParent && !hasParent && (
-          isSpouse
-            ? <button disabled style={disabledBtn} title="Gia phả liên tộc chưa được hỗ trợ">
+          isSpouse || atLimit
+            ? <button disabled style={disabledBtn} title={isSpouse ? 'Gia phả liên tộc chưa được hỗ trợ' : 'Đã đạt giới hạn 200 người'}>
                 ↑ Thêm cha / mẹ
               </button>
             : <ActionBtn onClick={() => onAddParent(personId)} color="#059669">

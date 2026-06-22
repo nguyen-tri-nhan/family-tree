@@ -466,6 +466,10 @@ export function App({
     return computeKinship(doc, kinshipPair.a, kinshipPair.b, region)?.path
   }, [kinshipPair, doc])
 
+  const personCount = doc?.persons.length ?? 0
+  const atLimit     = personCount >= 200
+  const nearLimit   = personCount >= 180 && !atLimit
+
   const dragStyle = headerDrag
     ? { WebkitAppRegion: 'drag', userSelect: 'none' } as React.CSSProperties
     : undefined
@@ -578,7 +582,17 @@ export function App({
         </div>
 
         <div style={noDragStyle}>
-          <SearchBar doc={doc} onSelect={id => setHighlight(id)} />
+          <SearchBar
+            doc={doc}
+            placeholder={compareMode.active ? 'Tìm người để so sánh…' : undefined}
+            onSelect={id => {
+              if (compareMode.active) {
+                handlePersonClick(id)
+              } else {
+                setHighlight(id)
+              }
+            }}
+          />
         </div>
 
         <div style={{ display: 'flex', gap: 6, ...noDragStyle }}>
@@ -604,6 +618,14 @@ export function App({
                 <button onClick={() => setShowIssues(true)} style={issueBtn(errorCount > 0)}>
                   {errorCount > 0 ? `■ ${errorCount} lỗi` : `▲ ${warningCount}`}
                 </button>
+              )}
+              {(atLimit || nearLimit) && (
+                <span
+                  style={personLimitBadge(atLimit)}
+                  title={atLimit ? 'Bản miễn phí giới hạn 200 người. Liên hệ để nâng cấp.' : undefined}
+                >
+                  {personCount}/200 người
+                </span>
               )}
             </>
           )}
@@ -683,6 +705,7 @@ export function App({
           personId={selectedPerson}
           doc={doc}
           editMode={editMode}
+          atLimit={atLimit}
           onClose={() => setSelected(null)}
           onEdit={id => { setFormMode({ type: 'edit', personId: id }); setSelected(null) }}
           onDelete={handleDelete}
@@ -851,6 +874,16 @@ const btnActive: React.CSSProperties = {
   padding: '6px 14px', borderRadius: 8, border: 'none',
   fontSize: 13, fontWeight: 700, cursor: 'pointer',
   background: '#059669', color: '#fff', whiteSpace: 'nowrap',
+}
+
+function personLimitBadge(atLimit: boolean): React.CSSProperties {
+  return {
+    padding: '4px 8px', borderRadius: 8,
+    fontSize: 11, fontWeight: 700, whiteSpace: 'nowrap',
+    background: atLimit ? '#fef2f2' : '#fff7ed',
+    color:      atLimit ? '#dc2626' : '#ea580c',
+    border:     `1px solid ${atLimit ? '#fecaca' : '#fed7aa'}`,
+  }
 }
 
 function issueBtn(hasError: boolean): React.CSSProperties {
